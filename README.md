@@ -1,6 +1,6 @@
-# Barbearia — modelo de site + sistema de gestão
+# ForBarber
 
-Modelo completo para apresentar a barbearias: site público, agendamento online com horários reais, área do cliente e painel interno (agenda, clientes, financeiro). Funciona 100% no navegador, sem servidor nem instalação.
+Produto da [MovCode](https://movcode.com.br/sistema-para-barbearia) para barbearias: site público, agendamento online com horários reais, área do cliente e painel interno (agenda, clientes, financeiro). Funciona 100% no navegador, sem servidor nem instalação.
 
 ## Como abrir
 

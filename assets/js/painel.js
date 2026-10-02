@@ -111,7 +111,7 @@
     $('#side').innerHTML = html`
       <a class="side-brand" href="index.html">
         <img data-logo src="${s.logo || '../assets/img/logo.png'}" alt="" width="40" height="40">
-        <span><span class="brand-name brand-font" data-bind="name">${s.name}</span><small>Sistema de gestão</small></span>
+        <span><span class="brand-name brand-font" data-bind="name">${s.name}</span><small>ForBarber · gestão</small></span>
       </a>
       <nav class="side-nav" aria-label="Menu do painel">
         ${NAV.map((g) => {

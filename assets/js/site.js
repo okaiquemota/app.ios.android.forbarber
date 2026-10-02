@@ -223,9 +223,10 @@
     if (s.demoMode && !ribbon) {
       ribbon = document.createElement('div');
       ribbon.className = 'demo-ribbon';
-      ribbon.innerHTML = html`<strong>Demonstração</strong>
-        <span>Site modelo com dados fictícios: agende, entre no painel e teste à vontade. Tudo fica salvo só neste navegador.</span>
-        <a href="login.html#demo">Ver acessos de teste</a>`;
+      ribbon.innerHTML = html`<strong>ForBarber</strong>
+        <span>Demonstração com dados fictícios: agende, entre no painel e teste à vontade.</span>
+        <a href="login.html#demo">Acessos de teste</a>
+        <a href="https://movcode.com.br/sistema-para-barbearia" target="_blank" rel="noopener">Quero para minha barbearia</a>`;
       document.body.prepend(ribbon);
     } else if (!s.demoMode && ribbon) {
       ribbon.remove();
