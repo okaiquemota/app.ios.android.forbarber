@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-base="../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Agenda · Grey Barber</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0d0c0a">
+  <link rel="icon" type="image/png" href="../assets/img/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@700&family=Rye&display=swap">
+  <link rel="stylesheet" href="../assets/vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/painel.css">
+</head>
+<body class="painel" data-page="agenda" data-title="Agenda">
+  <div class="shell">
+    <aside class="side" id="side" aria-label="Menu do painel"></aside>
+    <div class="main">
+      <header class="topbar" id="topbar"></header>
+      <main class="content" id="conteudo">
+        <div class="agenda-toolbar">
+          <div class="agenda-date" id="agenda-date"></div>
+          <div class="cluster-sm">
+            <button type="button" class="btn btn-ghost btn-icon btn-sm" data-nav="-1" aria-label="Anterior"><i class="bi bi-chevron-left"></i></button>
+            <button type="button" class="btn btn-outline btn-sm" data-nav="0">Hoje</button>
+            <button type="button" class="btn btn-ghost btn-icon btn-sm" data-nav="1" aria-label="Próximo"><i class="bi bi-chevron-right"></i></button>
+            <input class="input input-sm" type="date" id="agenda-pick" aria-label="Ir para a data" style="width:auto">
+          </div>
+          <div class="seg" id="agenda-view"><button type="button" data-view="dia" aria-pressed="true">Dia</button><button type="button" data-view="semana" aria-pressed="false">Semana</button></div>
+          <select class="select input-sm" id="agenda-barber" aria-label="Profissional" style="width:auto"></select>
+          <label class="switch"><input type="checkbox" id="agenda-cancel"><span class="track"></span>Cancelados</label>
+          <button type="button" class="btn btn-outline btn-sm" id="agenda-block"><i class="bi bi-slash-circle"></i>Bloquear</button>
+        </div>
+        <div class="agenda-legend" aria-hidden="true">
+          <span><i class="bi bi-calendar-check" style="color:var(--info)"></i>Confirmado</span>
+          <span><i class="bi bi-check2-circle" style="color:var(--success)"></i>Concluído</span>
+          <span><i class="bi bi-person-x" style="color:var(--danger)"></i>Não compareceu</span>
+          <span><i class="bi bi-slash-circle"></i>Bloqueio</span>
+          <span class="subtle">Clique num espaço vazio para agendar</span>
+        </div>
+        <div class="agenda-wrap"><div class="agenda" id="agenda"></div></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/seed.js"></script>
+  <script src="../assets/js/cloud.js"></script>
+  <script src="../assets/js/store.js"></script>
+  <script src="../assets/js/booking.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="../assets/js/painel.js"></script>
+  <script src="../assets/js/painel/agenda.js"></script>
+</body>
+</html>

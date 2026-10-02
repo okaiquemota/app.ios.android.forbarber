@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Contato · Grey Barber</title>
+  <meta name="description" content="Endereço, telefone, WhatsApp e horários da barbearia. Envie uma mensagem.">
+  <meta name="theme-color" content="#0d0c0a">
+  <link rel="icon" type="image/png" href="assets/img/favicon.png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@700&family=Rye&display=swap">
+  <link rel="stylesheet" href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/site.css">
+</head>
+<body data-page="contato" data-title="Contato">
+  <header class="site-header" id="site-header"></header>
+
+  <main id="conteudo">
+    <section class="page-hero">
+      <div class="container">
+        <nav class="breadcrumb" aria-label="Você está em">
+          <a href="index.html">Início</a><span aria-hidden="true">/</span><span>Contato</span>
+        </nav>
+        <h1>Fale com a gente</h1>
+        <p class="lead">Tire dúvidas, peça um orçamento para grupos e eventos ou deixe sua sugestão.</p>
+      </div>
+    </section>
+
+    <div class="container contact-grid">
+      <div class="stack-lg">
+        <section class="stack" aria-labelledby="canais-title">
+          <h2 class="group-label" id="canais-title">Canais de atendimento</h2>
+          <div class="channels">
+            <div class="channel">
+              <span class="channel-icon"><i class="bi bi-whatsapp" aria-hidden="true"></i></span>
+              <div class="channel-body"><div class="channel-label">WhatsApp</div><div class="channel-value" data-bind="whatsapp"></div></div>
+              <div class="channel-actions">
+                <button type="button" class="btn btn-ghost btn-icon btn-sm" data-copy="whatsapp" aria-label="Copiar número do WhatsApp"><i class="bi bi-copy"></i></button>
+                <a class="btn btn-whatsapp btn-sm" data-link="whatsapp" target="_blank" rel="noopener">Abrir</a>
+              </div>
+            </div>
+            <div class="channel">
+              <span class="channel-icon"><i class="bi bi-telephone" aria-hidden="true"></i></span>
+              <div class="channel-body"><div class="channel-label">Telefone</div><div class="channel-value" data-bind="phone"></div></div>
+              <div class="channel-actions">
+                <button type="button" class="btn btn-ghost btn-icon btn-sm" data-copy="phone" aria-label="Copiar telefone"><i class="bi bi-copy"></i></button>
+                <a class="btn btn-outline btn-sm" data-link="tel">Ligar</a>
+              </div>
+            </div>
+            <div class="channel">
+              <span class="channel-icon"><i class="bi bi-envelope" aria-hidden="true"></i></span>
+              <div class="channel-body"><div class="channel-label">E-mail</div><div class="channel-value" data-bind="email"></div></div>
+              <div class="channel-actions">
+                <button type="button" class="btn btn-ghost btn-icon btn-sm" data-copy="email" aria-label="Copiar e-mail"><i class="bi bi-copy"></i></button>
+                <a class="btn btn-outline btn-sm" data-link="mail">Escrever</a>
+              </div>
+            </div>
+            <div class="channel">
+              <span class="channel-icon"><i class="bi bi-instagram" aria-hidden="true"></i></span>
+              <div class="channel-body"><div class="channel-label">Instagram</div><div class="channel-value" data-bind="instagram"></div></div>
+              <div class="channel-actions">
+                <a class="btn btn-outline btn-sm" data-link="instagram" target="_blank" rel="noopener">Seguir</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="stack" aria-labelledby="horario-title">
+          <h2 class="group-label" id="horario-title">Horário de funcionamento</h2>
+          <div id="open-status"></div>
+          <div id="contact-hours"></div>
+        </section>
+
+        <section class="stack" aria-labelledby="endereco-title">
+          <h2 class="group-label" id="endereco-title">Endereço</h2>
+          <div class="map-card" id="map-card">
+            <span class="eyebrow plain"><i class="bi bi-geo-alt-fill" aria-hidden="true"></i><span data-bind="district"></span></span>
+            <p class="map-address"><span data-bind="street"></span><br><span data-bind="city"></span></p>
+            <p class="text-sm muted" data-bind="cep"></p>
+            <div class="cluster">
+              <button class="btn btn-primary btn-sm" type="button" data-load-map><i class="bi bi-map"></i>Ver mapa aqui</button>
+              <a class="btn btn-outline btn-sm" data-link="maps" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i>Abrir no Google Maps</a>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="card card-pad stack" id="contact-card" aria-labelledby="form-title">
+        <div class="stack-sm">
+          <h2 class="wizard-title" id="form-title">Envie uma mensagem</h2>
+          <p class="muted">Respondemos em até 1 dia útil. Para marcar horário é mais rápido pelo <a class="link" href="agendar.html">agendamento online</a>.</p>
+        </div>
+        <form id="contact-form" class="form-grid" novalidate>
+          <div class="field">
+            <label class="label" for="c-name">Nome</label>
+            <input class="input" id="c-name" name="name" autocomplete="name" required>
+          </div>
+          <div class="field">
+            <label class="label" for="c-phone">WhatsApp <span class="opt">(opcional)</span></label>
+            <input class="input" id="c-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(16) 98765-4321">
+          </div>
+          <div class="field full">
+            <label class="label" for="c-email">E-mail</label>
+            <input class="input" id="c-email" name="email" type="email" autocomplete="email" placeholder="nome@email.com" required>
+          </div>
+          <div class="field full">
+            <label class="label" for="c-subject">Assunto</label>
+            <select class="select" id="c-subject" name="subject">
+              <option>Dúvida sobre serviços</option>
+              <option>Orçamento para evento ou grupo</option>
+              <option>Elogio</option>
+              <option>Reclamação ou sugestão</option>
+              <option>Parcerias</option>
+              <option>Outro assunto</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label class="label" for="c-message">Mensagem</label>
+            <textarea class="textarea" id="c-message" name="message" rows="6" required placeholder="Conte como podemos ajudar"></textarea>
+          </div>
+          <div class="full">
+            <button class="btn btn-primary btn-lg btn-block" type="submit"><i class="bi bi-send"></i>Enviar mensagem</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/cloud.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script src="assets/js/booking.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/site.js"></script>
+  <script src="assets/js/pages/contato.js"></script>
+</body>
+</html>
