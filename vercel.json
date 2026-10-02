@@ -12,11 +12,6 @@
       "permanent": false
     },
     {
-      "source": "/planos",
-      "destination": "/#planos",
-      "permanent": false
-    },
-    {
       "source": "/app",
       "destination": "/demo/",
       "permanent": false

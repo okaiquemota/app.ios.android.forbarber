@@ -27,6 +27,9 @@
 
     salesWhatsapp: '5516982157266',
     salesUrl: 'https://movcode.com.br/sistema-para-barbearia',
+
+    // Site do produto (repositório movcodebr/site.produto.forbarber)
+    siteUrl: 'https://movcodebr.github.io/site.produto.forbarber/',
   };
 
   /* Descobre a barbearia pelo endereço.

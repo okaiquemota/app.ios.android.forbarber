@@ -1,5 +1,6 @@
 /* ==========================================================================
-   PRODUTO — página inicial do ForBarber, criar barbearia e entrar no painel.
+   PRODUTO — criar barbearia e entrar no painel (o site de vendas fica no
+   repositório movcodebr/site.produto.forbarber).
    Cada barbearia criada ganha o endereço <site>/<nome>/ (vercel.json).
    ========================================================================== */
 (function () {
@@ -15,7 +16,6 @@
   const PREFIX = BASE.replace(/^https?:\/\//, '');
   const panelUrl = (slug) => `${BASE}${slug}/painel/index.html`;
   const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
-  const teamLabel = (n) => (n >= 99 ? 'Barbeiros ilimitados' : n === 1 ? '1 barbeiro' : `Até ${n} barbeiros`);
   const sales = (text) => U.waLink(CFG.salesWhatsapp, text || 'Olá! Quero saber mais sobre o ForBarber.');
 
   /** "Barbearia do Zé" -> "barbearia-do-ze" */
@@ -29,6 +29,7 @@
 
   document.querySelectorAll('[data-host]').forEach((el) => { el.textContent = PREFIX.replace(/\/$/, ''); });
   document.querySelectorAll('[data-sales]').forEach((el) => { el.href = sales(); });
+  document.querySelectorAll('[data-site]').forEach((el) => { if (CFG.siteUrl) el.href = CFG.siteUrl; });
 
   /** Sem Supabase configurado não dá para criar contas: mostra a demonstração */
   function notLive() {
@@ -39,21 +40,6 @@
       </div>
       <a class="btn btn-primary btn-lg btn-block" href="app/"><i class="bi bi-play-circle"></i>Abrir a demonstração</a>
       <a class="btn btn-whatsapp btn-block" href="${sales('Olá! Quero colocar minha barbearia no ForBarber.')}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i>Falar com a gente</a>`;
-  }
-
-  /* ======================= Página inicial: planos ======================= */
-  function home() {
-    const el = $('#plans');
-    if (!el) return;
-    el.innerHTML = html`${(CFG.plans || []).map((p) => html`
-      <article class="plan-card ${p.id === 'equipe' ? 'is-featured' : ''}">
-        <div class="stack-sm">
-          <h3 class="plan-name">${p.name}</h3>
-          <span class="plan-team"><i class="bi bi-people"></i>${teamLabel(p.barbers)}</span>
-        </div>
-        <div class="plan-price"><strong>${U.money(p.price)}</strong><span>/mês</span></div>
-        <a class="btn ${p.id === 'equipe' ? 'btn-primary' : 'btn-outline'} btn-block" href="criar.html">Testar 14 dias grátis</a>
-      </article>`)}`;
   }
 
   /* ======================= Criar barbearia ======================= */
@@ -418,7 +404,7 @@
     bindLogin();
   }
 
-  const run = { produto: home, criar, entrar }[page];
+  const run = { criar, entrar }[page];
   if (run) {
     Promise.resolve(run()).catch((err) => {
       if (UI) UI.toast((App.cloud && App.cloud.friendly(err)) || 'Algo deu errado. Recarregue a página.', 'error');

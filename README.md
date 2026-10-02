@@ -2,12 +2,14 @@
 
 Sistema para barbearias vendido como assinatura (estilo AppBarber): cada barbearia cria a conta sozinha, ganha 14 dias grátis e um endereço próprio (`seudominio/nome-da-barbearia/`) com site, agendamento online, app instalável e painel da equipe.
 
-Identidade do produto: azul-marinho, vermelho do poste de barbeiro e fonte Archivo (página inicial, criar e entrar). O site de cada barbearia usa as cores e o logo que o dono escolher.
+Identidade do produto: azul-marinho, vermelho do poste de barbeiro e fonte Archivo (criar e entrar). O site de cada barbearia usa as cores e o logo que o dono escolher.
+
+A página de vendas fica em outro repositório: [movcodebr/site.produto.forbarber](https://github.com/movcodebr/site.produto.forbarber). Aqui fica só o sistema; o `index.html` da raiz redireciona para o site (`siteUrl` no `config.js`).
 
 ## Estrutura
 
 ```
-index.html            página do ForBarber (recursos, planos, perguntas)
+index.html            redireciona para o site de vendas (outro repositório)
 criar.html            cadastro self-service: conta + barbearia + teste grátis
 entrar.html           login do dono/barbeiro, escolha de barbearia, nova senha
 app/                  o app de cada barbearia (servido em /<nome>/ pelo vercel.json)
@@ -27,7 +29,7 @@ Sem chaves no `config.js`, tudo roda como **demonstração local** (dados de exe
 1. **Supabase:** crie o projeto e rode, na ordem, `supabase/migrations/20261002000000_forbarber_schema.sql` e `…000100_forbarber_storage.sql` (SQL Editor ou `supabase db push`).
 2. Em **Authentication → Sign In / Providers → Email**, deixe **Confirm email ligado**. Os convites de barbeiro dependem disso (quem entra com o e-mail convidado vira equipe).
 3. Em **Authentication → URL Configuration**: Site URL = seu domínio; Redirect URLs = `https://seudominio/**`.
-4. Em `app/assets/js/config.js`, preencha `supabaseUrl` e `supabaseAnonKey` (chave pública *anon/publishable*, nunca a service role) e confira preços dos `plans`.
+4. Em `app/assets/js/config.js`, preencha `supabaseUrl` e `supabaseAnonKey` (chave pública *anon/publishable*, nunca a service role), `siteUrl` e confira preços dos `plans`. No site de vendas, aponte `appUrl` para este deploy.
 5. **Vercel:** importe o repositório (sem build, site estático). O `vercel.json` já faz `/nome/` abrir o app daquela barbearia.
 
 ## Assinatura (cobrança)
