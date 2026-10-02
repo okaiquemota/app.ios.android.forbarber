@@ -207,7 +207,58 @@ window.App.ready(function () {
       : UI.empty('bi-emoji-smile', 'Todos os clientes em dia', 'Nenhum cliente sumido há mais de 45 dias.').toString();
   }
 
+  /* ---------- Primeiros passos (barbearia recém-criada na nuvem) ---------- */
+  function renderStart() {
+    const s = db.settings();
+    let el = $('#start');
+    if (!P.isAdmin || !db.isCloud() || s.onboardingDone) {
+      if (el) el.remove();
+      return;
+    }
+    const link = window.FORBARBER.appRoot;
+    const steps = [
+      { done: false, icon: 'bi-scissors', href: 'servicos.html', title: 'Confira serviços e preços', text: 'Já criamos corte, barba e combo. Troque valores e tempos.' },
+      { done: false, icon: 'bi-clock', href: 'configuracoes.html', title: 'Ajuste os horários', text: 'Dias de funcionamento, intervalo entre horários e antecedência.' },
+      { done: !!s.logo, icon: 'bi-image', href: 'configuracoes.html', title: 'Coloque seu logo', text: 'Ele vira o ícone do app no celular dos clientes.' },
+      { done: db.barbers().length > 1 || db.invites().length > 0, icon: 'bi-person-plus', href: 'equipe.html', title: 'Convide a equipe', text: 'Cada barbeiro recebe o próprio acesso.' },
+    ];
+    if (!el) {
+      el = document.createElement('section');
+      el.id = 'start';
+      el.className = 'panel';
+      el.setAttribute('aria-labelledby', 'start-title');
+      $('.page-head').after(el);
+    }
+    const share = `Agende seu horário na ${s.name} pelo link: ${link}`;
+    el.innerHTML = html`
+      <div class="panel-head">
+        <h2 class="panel-title" id="start-title"><i class="bi bi-rocket-takeoff" aria-hidden="true"></i>Primeiros passos</h2>
+        <button type="button" class="btn btn-ghost btn-xs" data-start-hide>Ocultar</button>
+      </div>
+      <div class="panel-body start-body">
+        <ol class="start-steps">
+          ${steps.map((st) => html`<li class="${st.done ? 'is-done' : ''}"><a href="${st.href}">
+            <i class="bi ${st.done ? 'bi-check-circle-fill' : st.icon}" aria-hidden="true"></i>
+            <span><strong>${st.title}</strong><small>${st.text}</small></span></a></li>`)}
+        </ol>
+        <div class="start-link">
+          <span class="label">Seu link de agendamento</span>
+          <a class="link" href="${link}" target="_blank" rel="noopener">${link.replace(/^https?:\/\//, '')}</a>
+          <div class="cluster-sm">
+            <button type="button" class="btn btn-outline btn-sm" data-start-copy><i class="bi bi-copy"></i>Copiar</button>
+            <a class="btn btn-whatsapp btn-sm" href="https://wa.me/?text=${encodeURIComponent(share)}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i>Enviar</a>
+          </div>
+          <span class="help">Coloque na bio do Instagram e na mensagem automática do WhatsApp.</span>
+        </div>
+      </div>`;
+    el.querySelector('[data-start-copy]').addEventListener('click', async () => {
+      UI.toast((await U.copyText(link)) ? 'Link copiado.' : 'Não deu para copiar. Segure o link para copiar.', 'info');
+    });
+    el.querySelector('[data-start-hide]').addEventListener('click', () => db.saveSettings({ onboardingDone: true }));
+  }
+
   function render() {
+    renderStart();
     const todays = db.appointments({ date: U.today(), barberId: scope }).sort(db.byDateTime);
     renderHead(todays);
     renderKpis(todays);

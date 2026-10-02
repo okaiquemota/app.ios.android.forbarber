@@ -31,7 +31,8 @@ $$;
 create or replace function public.reserved_slug(p text) returns boolean
 language sql immutable as $$
   select p = any (array['app','demo','admin','api','assets','criar','entrar','painel','www','forbarber',
-                        'suporte','ajuda','planos','precos','blog','static','vendor','login','cadastro','conta'])
+                        'suporte','ajuda','planos','precos','blog','static','vendor','login','cadastro','conta',
+                        'supabase','termos','privacidade','assinatura'])
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -116,13 +117,23 @@ create table public.clients (
   phone text not null default '',
   email text not null default '',
   birthday date,
-  notes text not null default '',
   active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz,
-  unique (shop_id, user_id)
+  unique (shop_id, user_id),
+  unique (id, shop_id)
 );
 create index clients_shop_idx on public.clients (shop_id);
+
+-- Ficha do cliente (anotações da equipe): tabela à parte para o cliente não ler
+create table public.client_notes (
+  client_id uuid primary key,
+  shop_id uuid not null,
+  notes text not null default '' check (char_length(notes) <= 2000),
+  updated_at timestamptz,
+  foreign key (client_id, shop_id) references public.clients (id, shop_id) on delete cascade
+);
+create index client_notes_shop_idx on public.client_notes (shop_id);
 
 create table public.appointments (
   id uuid primary key default gen_random_uuid(),
@@ -195,6 +206,7 @@ create trigger shops_updated before update on public.shops for each row execute 
 create trigger barbers_updated before update on public.barbers for each row execute function public.set_updated_at();
 create trigger services_updated before update on public.services for each row execute function public.set_updated_at();
 create trigger clients_updated before update on public.clients for each row execute function public.set_updated_at();
+create trigger client_notes_updated before update on public.client_notes for each row execute function public.set_updated_at();
 create trigger appointments_updated before update on public.appointments for each row execute function public.set_updated_at();
 
 -- ---------------------------------------------------------------------------
@@ -270,6 +282,7 @@ alter table public.shop_members enable row level security;
 alter table public.shop_invites enable row level security;
 alter table public.services enable row level security;
 alter table public.clients enable row level security;
+alter table public.client_notes enable row level security;
 alter table public.appointments enable row level security;
 alter table public.blocks enable row level security;
 alter table public.messages enable row level security;
@@ -299,6 +312,7 @@ create policy clients_read on public.clients for select using (public.is_staff(s
 create policy clients_staff_insert on public.clients for insert with check (public.is_staff(shop_id));
 create policy clients_staff_update on public.clients for update using (public.is_staff(shop_id)) with check (public.is_staff(shop_id));
 create policy clients_admin_delete on public.clients for delete using (public.is_admin(shop_id));
+create policy client_notes_staff on public.client_notes for all using (public.is_staff(shop_id)) with check (public.is_staff(shop_id));
 
 -- Agendamentos: cliente só lê os próprios; criar/cancelar pelo site é via funções
 create policy appointments_read on public.appointments for select
@@ -666,6 +680,6 @@ revoke execute on function public.enforce_barber_limit() from public;
 do $$
 begin
   if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
-    alter publication supabase_realtime add table public.appointments, public.messages, public.clients, public.blocks;
+    alter publication supabase_realtime add table public.appointments, public.messages, public.clients, public.client_notes, public.blocks;
   end if;
 end $$;

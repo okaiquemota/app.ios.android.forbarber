@@ -535,5 +535,19 @@ window.App.ready(function () {
     }
   });
 
+  // Assinatura vencida: o agendamento online fica pausado (a equipe ainda marca pelo painel)
+  const sub = auth.isCloud() ? App.cloud.subscription() : null;
+  if (sub && !sub.live && !auth.isStaff(auth.current())) {
+    $('#wizard').innerHTML = html`
+      <div class="wizard-panel"><div class="empty">
+        <i class="bi bi-calendar-x" aria-hidden="true"></i>
+        <strong>Agendamento online indisponível no momento</strong>
+        <p class="muted">Chame a ${db.settings().name} no WhatsApp para marcar seu horário.</p>
+        <a class="btn btn-whatsapp" data-link="whatsapp" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i>Chamar no WhatsApp</a>
+      </div></div>`;
+    UI.applyBranding();
+    return;
+  }
+
   init();
 });

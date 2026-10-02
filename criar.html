@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Criar barbearia · ForBarber</title>
+  <meta name="description" content="Crie o site e o sistema da sua barbearia em 5 minutos. 14 dias grátis, sem cartão.">
+  <meta name="theme-color" content="#0b1120">
+  <link rel="icon" type="image/svg+xml" href="app/assets/img/forbarber.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap">
+  <link rel="stylesheet" href="app/assets/vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="app/assets/css/base.css">
+  <link rel="stylesheet" href="app/assets/css/produto.css">
+</head>
+<body class="p-body" data-page="criar">
+  <header class="p-header">
+    <div class="container p-header-inner">
+      <a class="p-brand" href="./" aria-label="ForBarber, início"><span class="p-brand-mark" aria-hidden="true"></span><span class="p-brand-name"><span>For</span>Barber</span></a>
+      <div class="p-header-actions">
+        <a class="btn btn-ghost btn-sm" href="entrar.html">Já tenho conta</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="conteudo" class="p-auth">
+    <aside class="p-auth-side">
+      <span class="eyebrow">14 dias grátis · sem cartão</span>
+      <h2 class="p-title p-h2">Em 5 minutos sua barbearia está no ar</h2>
+      <ol class="p-steps">
+        <li><span><strong>Escolha o endereço</strong>É o link que vai na bio do Instagram e no WhatsApp.</span></li>
+        <li><span><strong>Ajuste serviços e horários</strong>Já começa com corte, barba e combo; é só trocar os preços.</span></li>
+        <li><span><strong>Convide a equipe</strong>Cada barbeiro recebe o próprio acesso pelo e-mail.</span></li>
+      </ol>
+    </aside>
+
+    <div class="p-auth-main">
+      <div class="p-card" id="card">
+        <div class="stack-sm">
+          <h1>Criar minha barbearia</h1>
+          <p class="muted">Você testa tudo por 14 dias. Se não gostar, é só não assinar.</p>
+        </div>
+
+        <div id="context"></div>
+
+        <form id="create-form" novalidate>
+          <div class="field">
+            <label class="label" for="shop">Nome da barbearia</label>
+            <div class="input-icon"><i class="bi bi-shop" aria-hidden="true"></i><input class="input" id="shop" name="shop" autocomplete="organization" placeholder="Ex.: Barbearia do Zé" maxlength="80" required></div>
+          </div>
+          <div class="field">
+            <label class="label" for="slug">Endereço do site</label>
+            <div class="slug-field">
+              <span class="slug-prefix" id="slug-prefix">forbarber.com.br/</span>
+              <input class="input" id="slug" name="slug" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="40" placeholder="barbeariadoze" required aria-describedby="slug-state">
+            </div>
+            <span class="slug-state wait" id="slug-state" aria-live="polite">Letras, números e hífen.</span>
+          </div>
+          <div class="grid-2" data-account>
+            <div class="field">
+              <label class="label" for="name">Seu nome</label>
+              <div class="input-icon"><i class="bi bi-person" aria-hidden="true"></i><input class="input" id="name" name="name" autocomplete="name" required></div>
+            </div>
+            <div class="field">
+              <label class="label" for="phone">WhatsApp da barbearia</label>
+              <div class="input-icon"><i class="bi bi-whatsapp" aria-hidden="true"></i><input class="input" id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(16) 98765-4321" required></div>
+            </div>
+          </div>
+          <div class="field" data-login>
+            <label class="label" for="email">E-mail</label>
+            <div class="input-icon"><i class="bi bi-envelope" aria-hidden="true"></i><input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="nome@email.com" required></div>
+          </div>
+          <div class="field" data-login>
+            <label class="label" for="password">Senha</label>
+            <div class="input-icon">
+              <i class="bi bi-lock" aria-hidden="true"></i>
+              <input class="input" id="password" name="password" type="password" autocomplete="new-password" minlength="6" required>
+              <button type="button" class="input-action" data-toggle-password aria-label="Mostrar senha"><i class="bi bi-eye"></i></button>
+            </div>
+            <span class="help">Pelo menos 6 caracteres. É com ela que você entra no painel.</span>
+          </div>
+          <div class="field">
+            <label class="check"><input type="checkbox" name="terms" value="1"> Sou responsável pelos dados dos meus clientes e vou usá-los só para o atendimento da barbearia (LGPD).</label>
+          </div>
+          <button class="btn btn-primary btn-lg btn-block" type="submit"><i class="bi bi-scissors"></i>Criar e abrir o painel</button>
+        </form>
+
+        <p class="p-alt">Já criou a sua? <a class="link" href="entrar.html">Entrar no painel</a></p>
+      </div>
+    </div>
+  </main>
+
+  <script src="app/assets/js/config.js"></script>
+  <script src="app/assets/js/utils.js"></script>
+  <script src="app/assets/js/ui.js"></script>
+  <script src="app/assets/js/cloud.js"></script>
+  <script src="app/assets/js/produto.js"></script>
+</body>
+</html>

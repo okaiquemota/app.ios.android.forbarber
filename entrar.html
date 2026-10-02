@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Entrar · ForBarber</title>
+  <meta name="description" content="Entre no painel da sua barbearia.">
+  <meta name="theme-color" content="#0b1120">
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/svg+xml" href="app/assets/img/forbarber.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap">
+  <link rel="stylesheet" href="app/assets/vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="app/assets/css/base.css">
+  <link rel="stylesheet" href="app/assets/css/produto.css">
+</head>
+<body class="p-body" data-page="entrar">
+  <header class="p-header">
+    <div class="container p-header-inner">
+      <a class="p-brand" href="./" aria-label="ForBarber, início"><span class="p-brand-mark" aria-hidden="true"></span><span class="p-brand-name"><span>For</span>Barber</span></a>
+      <div class="p-header-actions">
+        <a class="btn btn-primary btn-sm" href="criar.html">Testar grátis</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="conteudo" class="p-auth">
+    <aside class="p-auth-side">
+      <span class="eyebrow">Painel da barbearia</span>
+      <h2 class="p-title p-h2">Agenda, clientes e caixa num lugar só</h2>
+      <p class="lead">Dono e barbeiros entram aqui com o e-mail cadastrado. Cada um vê o que é seu.</p>
+    </aside>
+
+    <div class="p-auth-main">
+      <div class="p-card" id="card">
+        <div class="stack-sm">
+          <h1>Entrar</h1>
+          <p class="muted">Use o e-mail e a senha que você cadastrou.</p>
+        </div>
+        <div id="context"></div>
+        <form id="login-form" novalidate>
+          <div class="field">
+            <label class="label" for="email">E-mail</label>
+            <div class="input-icon"><i class="bi bi-envelope" aria-hidden="true"></i><input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="nome@email.com" required></div>
+          </div>
+          <div class="field">
+            <div class="spread"><label class="label" for="password">Senha</label><button type="button" class="link text-sm" id="forgot">Esqueci a senha</button></div>
+            <div class="input-icon">
+              <i class="bi bi-lock" aria-hidden="true"></i>
+              <input class="input" id="password" name="password" type="password" autocomplete="current-password" required>
+              <button type="button" class="input-action" data-toggle-password aria-label="Mostrar senha"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-lg btn-block" type="submit"><i class="bi bi-box-arrow-in-right"></i>Entrar</button>
+        </form>
+        <p class="p-alt">Ainda não tem? <a class="link" href="criar.html">Criar minha barbearia grátis</a></p>
+      </div>
+    </div>
+  </main>
+
+  <script src="app/assets/js/config.js"></script>
+  <script src="app/assets/js/utils.js"></script>
+  <script src="app/assets/js/ui.js"></script>
+  <script src="app/assets/js/cloud.js"></script>
+  <script src="app/assets/js/produto.js"></script>
+</body>
+</html>

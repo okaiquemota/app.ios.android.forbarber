@@ -1,0 +1,77 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/criar",
+      "destination": "/criar.html",
+      "permanent": false
+    },
+    {
+      "source": "/entrar",
+      "destination": "/entrar.html",
+      "permanent": false
+    },
+    {
+      "source": "/planos",
+      "destination": "/#planos",
+      "permanent": false
+    },
+    {
+      "source": "/app",
+      "destination": "/demo/",
+      "permanent": false
+    },
+    {
+      "source": "/app/",
+      "destination": "/demo/",
+      "permanent": false
+    },
+    {
+      "source": "/:slug([a-z0-9][a-z0-9-]{1,38}[a-z0-9])",
+      "destination": "/:slug/",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/:slug([a-z0-9][a-z0-9-]{1,38}[a-z0-9])/",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/:slug([a-z0-9][a-z0-9-]{1,38}[a-z0-9])/painel/",
+      "destination": "/app/painel/index.html"
+    },
+    {
+      "source": "/:slug([a-z0-9][a-z0-9-]{1,38}[a-z0-9])/:path*",
+      "destination": "/app/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/:slug([a-z0-9][a-z0-9-]{1,38}[a-z0-9])/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        }
+      ]
+    }
+  ]
+}

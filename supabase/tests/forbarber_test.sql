@@ -63,6 +63,7 @@ select public.t_err($$update public.shops set plan = 'premium' where slug = 'gre
 update public.shops set settings = settings || '{"slogan":"Novo slogan"}' where id = :'shop';
 select public.t_ok((select settings->>'slogan' = 'Novo slogan' from public.shops where id = :'shop'), 'dono altera configurações');
 insert into public.clients (shop_id, name, phone) values (:'shop', 'Walk-in Lucas', '(16) 98888-1111');
+insert into public.client_notes (client_id, shop_id, notes) select id, shop_id, 'Prefere máquina 2 nas laterais' from public.clients where name = 'Walk-in Lucas';
 reset role;
 
 \echo '--- Visitante anônimo'
@@ -84,6 +85,8 @@ set role authenticated;
 select id as client from public.join_shop(:'shop', 'Lucas Andrade', '16 98888-1111') \gset
 select public.t_ok((select count(*) = 1 from public.clients), 'cliente vê só o próprio cadastro');
 select public.t_ok((select name = 'Lucas Andrade' and user_id = auth.uid() from public.clients where id = :'client'), 'assumiu o cadastro do balcão pelo telefone');
+select public.t_ok((select count(*) = 0 from public.client_notes), 'cliente NÃO lê a ficha interna da equipe');
+select public.t_err(format($$insert into public.client_notes (client_id, shop_id, notes) values (%L, %L, 'x')$$, :'client', :'shop'), 'row-level security', 'cliente não escreve na ficha');
 select id as svc_corte from public.services where shop_id = :'shop' and name = 'Corte' \gset
 select id as svc_barba from public.services where shop_id = :'shop' and name = 'Barba' \gset
 select id as appt from public.book_appointment(:'shop', :'barber', array[:'svc_corte', :'svc_barba']::uuid[], :'dia', '10:00') \gset
@@ -117,6 +120,7 @@ set role authenticated;
 select public.t_ok((select count(*) = 2 from public.clients where shop_id = :'shop'), 'dono vê todos os clientes');
 select public.t_ok((select count(*) = 2 from public.appointments where shop_id = :'shop'), 'dono vê todos os agendamentos');
 select public.t_ok((select count(*) = 1 from public.messages where shop_id = :'shop'), 'dono lê mensagens');
+select public.t_ok((select notes like 'Prefere%' from public.client_notes where client_id = :'client'), 'dono lê a ficha do cliente');
 insert into public.blocks (shop_id, barber_id, date, start_time, end_time, reason) values (:'shop', :'barber', :'dia', '14:00', '15:00', 'Consulta médica');
 insert into public.barbers (shop_id, name) values (:'shop', 'Rodrigo') returning id as barber2 \gset
 insert into public.shop_invites (shop_id, email, barber_id, name) values (:'shop', 'barbeiro@teste.com', :'barber2', 'Rodrigo');
@@ -152,6 +156,7 @@ select public.t_as('authenticated', '55555555-5555-5555-5555-555555555555', 'riv
 set role authenticated;
 select id as rival from public.create_shop('Rival Cortes', 'rival-cortes', 'Rival') \gset
 select public.t_ok((select count(*) = 0 from public.clients where shop_id = :'shop'), 'rival NÃO vê clientes de outra barbearia');
+select public.t_ok((select count(*) = 0 from public.client_notes), 'rival NÃO lê fichas de outra barbearia');
 select public.t_ok((select count(*) = 0 from public.appointments where shop_id = :'shop'), 'rival NÃO vê agenda de outra barbearia');
 update public.shops set name = 'Hackeada' where id = :'shop';
 select public.t_ok((select name = 'Grey Barber' from public.shops where id = :'shop'), 'rival NÃO altera outra barbearia');

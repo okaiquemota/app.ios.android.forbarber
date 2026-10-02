@@ -1,53 +1,58 @@
 # ForBarber
 
-Produto da [MovCode](https://movcode.com.br/sistema-para-barbearia) para barbearias: site público, agendamento online com horários reais, área do cliente e painel interno (agenda, clientes, financeiro). Funciona 100% no navegador, sem servidor nem instalação.
+Sistema para barbearias vendido como assinatura (estilo AppBarber): cada barbearia cria a conta sozinha, ganha 14 dias grátis e um endereço próprio (`seudominio/nome-da-barbearia/`) com site, agendamento online, app instalável e painel da equipe.
 
-## Como abrir
-
-- **Mais simples:** dê dois cliques em `index.html` (Chrome/Edge).
-- **Recomendado:** sirva a pasta, por exemplo `npx serve .` ou `python3 -m http.server`, e abra `http://localhost:3000` (ou a porta indicada).
-- **Publicar:** GitHub Pages, Vercel ou Netlify servem a pasta como site estático, sem configuração.
-
-## Acessos de demonstração
-
-Senha de todos: `demo123`. No login há botões que entram com um clique.
-
-| Perfil | E-mail | O que vê |
-| --- | --- | --- |
-| Dono | `admin@demo.com` | Painel completo |
-| Barbeiro | `barbeiro@demo.com` | Própria agenda, comissão e clientes |
-| Cliente | `cliente@demo.com` | Agendamentos, histórico, fidelidade |
-
-## Apresentar para outra barbearia
-
-Entre como dono → **Configurações**. Nome, slogan, contatos, endereço, horários, cor principal, estilo dos títulos, logo e foto de capa mudam o site inteiro na hora. Em **Dados** dá para recarregar o exemplo ou começar do zero.
-
-Dica de apresentação: abra o site numa aba e o painel em outra. Um agendamento feito no site aparece na agenda do painel sem recarregar.
-
-## O que tem
-
-**Site:** início com o próximo horário livre calculado na hora, tabela de preços, equipe, avaliações, endereço e horários, contato (mensagens caem no painel), WhatsApp.
-
-**Agendamento online:** serviços (mais de um por vez) → barbeiro ou "sem preferência" → dia e horário livres → confirmação. Respeita expediente, folgas, bloqueios, antecedência mínima e agendamentos existentes. Salva na agenda do celular (.ics) e permite remarcar/cancelar dentro do prazo.
-
-**Área do cliente:** próximos horários, histórico, avaliação dos atendimentos, cartão fidelidade e dados pessoais.
-
-**Painel:** dashboard do dia, agenda por profissional (dia/semana), agendamentos com filtros, concluir com forma de pagamento, faltas, encaixes e bloqueios, ficha de clientes com anotações, aniversariantes e clientes sumidos, serviços, equipe com comissões e acessos, financeiro (faturamento, comissões, serviços, pagamentos, horários de pico), mensagens e exportação CSV/backup.
+Identidade do produto: azul-marinho, vermelho do poste de barbeiro e fonte Archivo (página inicial, criar e entrar). O site de cada barbearia usa as cores e o logo que o dono escolher.
 
 ## Estrutura
 
 ```
-index.html, servicos.html, agendar.html, contato.html   site público
-login.html, cadastro.html, senha.html, minha-conta.html conta do cliente
-painel/*.html                                           sistema interno
-assets/css/   base.css (tokens e componentes), site.css, painel.css
-assets/js/    utils, seed (dados de exemplo), store (dados), booking (horários),
-              auth, ui, site, painel, charts, pages/*, painel/*
-assets/vendor/bootstrap-icons  ícones locais (funciona offline)
+index.html            página do ForBarber (recursos, planos, perguntas)
+criar.html            cadastro self-service: conta + barbearia + teste grátis
+entrar.html           login do dono/barbeiro, escolha de barbearia, nova senha
+app/                  o app de cada barbearia (servido em /<nome>/ pelo vercel.json)
+  index.html …        site público, agendar, login/cadastro, minha conta
+  painel/             agenda, clientes, financeiro, equipe, configurações, assinatura
+  sw.js               cache do app instalável
+  assets/js/config.js ÚNICO arquivo a editar no deploy (chaves e planos)
+supabase/migrations/  banco: tabelas, segurança por barbearia, funções
+supabase/tests/       53+ testes de segurança e regras (bash supabase/tests/run.sh)
+vercel.json           endereço por barbearia (/nome/… → app/…)
 ```
 
-## Limites desta versão (importante antes de vender)
+Sem chaves no `config.js`, tudo roda como **demonstração local** (dados de exemplo no navegador). Também é o que acontece em `/demo/` e `/app/`.
 
-Os dados ficam no `localStorage` do navegador: cada aparelho tem sua própria cópia e a senha é verificada no próprio navegador. Isso é ótimo para demonstrar, mas **não serve para uso real com vários aparelhos**. Para produção, troque a camada `assets/js/store.js` (e a validação de `auth.js`) por uma API com banco de dados — Supabase ou Firebase encaixam bem, porque as páginas só conversam com `App.db` e `App.auth`. Envio real de e-mail/WhatsApp (recuperação de senha, lembretes) também depende de um back-end.
+## Colocar no ar
 
-As imagens originais em alta resolução estão no histórico do git (pasta `img/` antiga); o site usa versões otimizadas em `assets/img/`.
+1. **Supabase:** crie o projeto e rode, na ordem, `supabase/migrations/20261002000000_forbarber_schema.sql` e `…000100_forbarber_storage.sql` (SQL Editor ou `supabase db push`).
+2. Em **Authentication → Sign In / Providers → Email**, deixe **Confirm email ligado**. Os convites de barbeiro dependem disso (quem entra com o e-mail convidado vira equipe).
+3. Em **Authentication → URL Configuration**: Site URL = seu domínio; Redirect URLs = `https://seudominio/**`.
+4. Em `app/assets/js/config.js`, preencha `supabaseUrl` e `supabaseAnonKey` (chave pública *anon/publishable*, nunca a service role) e confira preços dos `plans`.
+5. **Vercel:** importe o repositório (sem build, site estático). O `vercel.json` já faz `/nome/` abrir o app daquela barbearia.
+
+## Assinatura (cobrança)
+
+Ainda não há gateway integrado. O dono vê o plano e os dias de teste em **Painel → Assinatura** e assina pelo WhatsApp (`salesWhatsapp`) ou por um link de pagamento (`checkoutUrl` de cada plano). Depois de receber, ative no SQL Editor:
+
+```sql
+update shops set plan = 'equipe', status = 'active' where slug = 'nome-da-barbearia';
+-- inadimplente: status = 'past_due' (segue no ar com aviso) | cancelado: status = 'canceled'
+```
+
+Com o teste vencido ou cancelado, o agendamento online pausa; agenda, clientes e financeiro continuam acessíveis. Plano, status e dono só mudam pelo SQL/service role, nunca pelo navegador.
+
+## Acessos da demonstração
+
+Senha de todos: `demo123` (botões de um clique no login).
+
+| Perfil | E-mail |
+| --- | --- |
+| Dono | `admin@demo.com` |
+| Barbeiro | `barbeiro@demo.com` |
+| Cliente | `cliente@demo.com` |
+
+## Segurança
+
+- Cada tabela tem RLS por barbearia; cliente só vê o próprio cadastro e os próprios horários.
+- Anotações da equipe sobre o cliente ficam em `client_notes`, que o cliente não lê.
+- Agendamento pelo site passa por `book_appointment` (preço, duração, expediente, antecedência e conflito calculados no servidor). Dois horários iguais são barrados por uma restrição do banco.

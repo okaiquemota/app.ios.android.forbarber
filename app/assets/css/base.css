@@ -683,7 +683,7 @@ dialog.modal::backdrop { background: rgba(5, 4, 3, 0.72); backdrop-filter: blur(
   padding: var(--sp-7) var(--sp-4);
   color: var(--text-3);
 }
-.empty i { font-size: 2rem; color: var(--text-3); }
+.empty > i { font-size: 2rem; color: var(--text-3); }
 .empty strong { color: var(--text); font-size: 1.05rem; }
 .empty p { max-width: 42ch; font-size: var(--fs-sm); }
 
@@ -749,3 +749,41 @@ fieldset.field legend { padding: 0; margin-bottom: 0.4rem; }
 .notice.warn { border-color: rgba(242, 182, 50, 0.35); background: var(--warning-soft); }
 .notice.warn > i { color: var(--warning); }
 
+
+/* ---------- Instalar o app (passo a passo do iPhone) ---------- */
+.install-steps { margin: 0; padding-left: 1.25rem; display: grid; gap: 0.6rem; color: var(--text-2); }
+.install-steps i { color: var(--primary); }
+
+/* ---------- Planos (página do produto e Painel › Assinatura) ---------- */
+.plans { display: grid; gap: var(--sp-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); }
+.plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.plan-card.is-featured, .plan-card.is-current { border-color: var(--primary-line); background: linear-gradient(180deg, var(--primary-soft), var(--surface) 60%); }
+.plan-name { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; line-height: 1.1; }
+.plan-team { display: inline-flex; align-items: center; gap: 0.45rem; color: var(--text-2); }
+.plan-team i { color: var(--primary); }
+.plan-price { display: flex; align-items: baseline; gap: 0.3rem; margin-top: auto; }
+.plan-price strong { font-family: var(--font-display); font-size: 2.2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.plan-price span { color: var(--text-3); }
+.plan-tag { align-self: flex-start; }
+
+/* ---------- Pular para o conteúdo ---------- */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -80px;
+  z-index: 300;
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  background: var(--primary);
+  color: var(--primary-ink);
+  font-weight: 700;
+}
+.skip-link:focus { top: 12px; color: var(--primary-ink); }

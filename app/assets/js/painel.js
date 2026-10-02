@@ -33,6 +33,7 @@ window.App.ready(function () {
     ] },
     { group: 'Sistema', items: [
       { id: 'configuracoes', href: 'configuracoes.html', icon: 'bi-gear', label: 'Configurações', admin: true },
+      { id: 'assinatura', href: 'assinatura.html', icon: 'bi-credit-card', label: 'Assinatura', admin: true },
     ] },
   ];
 
@@ -128,6 +129,7 @@ window.App.ready(function () {
       </nav>
       <div class="side-foot">
         <a class="side-link" href="../index.html"><i class="bi bi-globe2" aria-hidden="true"></i><span>Ver o site</span></a>
+        <button type="button" class="side-link" data-install ${App.pwa && App.pwa.available() ? '' : raw('hidden')}><i class="bi bi-phone" aria-hidden="true"></i><span>Instalar o app</span></button>
         <div class="side-user">
           ${staffAvatar(me())}
           <div class="grow"><strong>${me().name}</strong><span>${auth.ROLES[user.role]}</span></div>
@@ -848,9 +850,40 @@ window.App.ready(function () {
     }
   });
 
+  /* ---------- Aviso de assinatura (teste acabando, agendamento online pausado) ---------- */
+  function renderPlanBanner() {
+    const sub = App.cloud && auth.isCloud() ? App.cloud.subscription() : null;
+    const cta = (label) => (isAdmin ? html` <a class="link" href="assinatura.html">${label}</a>` : '');
+    let msg = null;
+    if (sub && page !== 'assinatura') {
+      if (!sub.live) {
+        msg = { warn: true, icon: 'bi-pause-circle', body: html`<strong>Agendamento online pausado.</strong>
+          ${sub.status === 'canceled' ? 'A assinatura foi cancelada.' : 'O teste grátis terminou.'}
+          ${isAdmin ? 'Os clientes não conseguem marcar pelo site até a assinatura.' : 'Fale com o administrador da barbearia.'}${cta('Escolher plano')}` };
+      } else if (sub.status === 'past_due') {
+        msg = { warn: true, icon: 'bi-exclamation-circle', body: html`<strong>Pagamento pendente.</strong> Regularize para o agendamento online não ser pausado.${cta('Ver assinatura')}` };
+      } else if (sub.trialing && sub.daysLeft <= 5 && isAdmin) {
+        msg = { warn: false, icon: 'bi-hourglass-split', body: html`<strong>${sub.daysLeft <= 1 ? 'Último dia' : `Faltam ${sub.daysLeft} dias`} do teste grátis.</strong> Escolha um plano para o agendamento online continuar no ar.${cta('Escolher plano')}` };
+      }
+    }
+    let el = $('#plan-banner');
+    if (!msg) {
+      if (el) el.remove();
+      return;
+    }
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'plan-banner';
+      $('#conteudo').prepend(el);
+    }
+    el.className = msg.warn ? 'notice warn' : 'notice';
+    el.innerHTML = html`<i class="bi ${msg.icon}"></i><div>${msg.body}</div>`;
+  }
+
   function renderChrome() {
     renderSide();
     renderTopbar();
+    renderPlanBanner();
     UI.applyBranding();
   }
   renderChrome();

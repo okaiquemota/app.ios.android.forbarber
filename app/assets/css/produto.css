@@ -1,0 +1,267 @@
+/* ==========================================================================
+   PRODUTO — identidade própria do ForBarber (página inicial, criar, entrar).
+   Não é a cara da MovCode nem a das barbearias: azul-marinho de navalha,
+   vermelho do poste de barbeiro e Archivo larga nos títulos.
+   Os componentes vêm de base.css; aqui só trocamos os tokens.
+   ========================================================================== */
+
+.p-body {
+  --bg: #0b1120;
+  --bg-raised: #0f1729;
+  --surface: #131d33;
+  --surface-2: #19253f;
+  --surface-3: #22314f;
+  --line: rgba(206, 220, 255, 0.1);
+  --line-strong: rgba(206, 220, 255, 0.2);
+  --text: #eef2f9;
+  --text-2: #aeb9cd;
+  --text-3: #7f8ba3;
+  --primary: #e5484d;
+  --primary-ink: #ffffff;
+  --primary-hover: #f05f63;
+  --primary-soft: rgba(229, 72, 77, 0.14);
+  --primary-line: rgba(229, 72, 77, 0.45);
+  --pole-blue: #4f7fe8;
+  --font-brand: 'Archivo', system-ui, sans-serif;
+  --font-heading: 'Archivo', system-ui, sans-serif;
+  --font-display: 'Archivo', system-ui, sans-serif;
+  --font-body: 'Archivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --header-h: 68px;
+  color-scheme: dark;
+}
+.p-body .btn { letter-spacing: 0.04em; font-weight: 700; font-size: 0.92rem; }
+.p-body .eyebrow { letter-spacing: 0.14em; font-weight: 700; font-size: 0.78rem; }
+.p-body .label { font-weight: 700; letter-spacing: 0.08em; font-size: 0.75rem; }
+
+/* ---------- Marca ---------- */
+.p-brand { display: inline-flex; align-items: center; gap: 0.6rem; color: var(--text); }
+.p-brand:hover { color: var(--text); }
+.p-brand-mark {
+  width: 13px;
+  height: 32px;
+  border-radius: 7px;
+  box-shadow: 0 0 0 2px var(--text);
+  background: repeating-linear-gradient(-45deg, var(--primary) 0 4px, #fff 4px 8px, var(--pole-blue) 8px 12px, #fff 12px 16px);
+  background-size: 100% 22.6px;
+  animation: p-pole 2.4s linear infinite;
+}
+@keyframes p-pole { to { background-position: 0 22.6px; } }
+@media (prefers-reduced-motion: reduce) { .p-brand-mark { animation: none; } }
+.p-brand-name { font-family: var(--font-brand); font-stretch: 125%; font-weight: 800; font-size: 1.3rem; line-height: 1; letter-spacing: -0.02em; }
+.p-brand-name span { font-weight: 400; color: var(--text-2); }
+
+/* ---------- Cabeçalho ---------- */
+.p-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.p-header-inner { display: flex; align-items: center; gap: var(--sp-4); min-height: var(--header-h); }
+.p-nav { display: none; gap: var(--sp-5); margin-left: var(--sp-5); color: var(--text-2); font-weight: 500; }
+.p-nav a:hover { color: var(--text); }
+.p-header-actions { display: flex; align-items: center; gap: var(--sp-2); margin-left: auto; }
+@media (min-width: 900px) { .p-nav { display: flex; } }
+@media (max-width: 479px) { .p-header .p-login { display: none; } }
+
+/* ---------- Títulos ---------- */
+.p-title {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+}
+.p-h1 { font-size: clamp(2.2rem, 4.6vw, 3.4rem); }
+.p-h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); }
+.p-title em { font-style: normal; color: var(--primary); }
+
+/* ---------- Hero ---------- */
+.p-hero { position: relative; overflow: hidden; padding-block: var(--sp-7) var(--sp-8); border-bottom: 1px solid var(--line); }
+.p-hero::before {
+  content: '';
+  position: absolute;
+  inset: -20% -10% auto auto;
+  width: 70vw;
+  height: 70vw;
+  max-width: 900px;
+  max-height: 900px;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--primary) 16%, transparent), transparent);
+  pointer-events: none;
+}
+.p-hero-grid { position: relative; display: grid; gap: var(--sp-7); align-items: center; }
+@media (min-width: 1000px) { .p-hero-grid { grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); } }
+.p-hero-copy { display: flex; flex-direction: column; gap: var(--sp-5); }
+.p-hero-copy .lead { max-width: 46ch; }
+.p-ctas { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+.p-fine { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; color: var(--text-3); font-size: var(--fs-sm); }
+.p-fine span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.p-fine i { color: var(--success); }
+
+.p-url {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 99px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  overflow-wrap: anywhere;
+}
+.p-url i { color: var(--primary); }
+.p-url b { color: var(--text); font-weight: 600; }
+
+/* Telas do sistema (navegador + celular) */
+.p-shots { position: relative; padding-bottom: 12%; }
+.p-browser {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.p-browser-bar { display: flex; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.p-browser-bar span { width: 10px; height: 10px; border-radius: 50%; background: var(--surface-3); }
+.p-browser img { width: 100%; }
+.p-phone {
+  position: absolute;
+  left: -2%;
+  bottom: 0;
+  width: 31%;
+  padding: 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 26px;
+  background: #050505;
+  box-shadow: var(--shadow);
+}
+.p-phone img { width: 100%; border-radius: 20px; }
+@media (max-width: 999px) { .p-phone { left: auto; right: 4%; width: 34%; } }
+
+/* ---------- Seções ---------- */
+.p-section { padding-block: var(--sp-8); }
+.p-section + .p-section { border-top: 1px solid var(--line); }
+.p-section-head { display: flex; flex-direction: column; gap: var(--sp-3); max-width: 720px; margin-bottom: var(--sp-6); }
+
+.p-feature { display: grid; gap: var(--sp-6); align-items: center; }
+.p-feature + .p-feature { margin-top: var(--sp-8); }
+@media (min-width: 900px) {
+  .p-feature { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); }
+  .p-feature.is-reverse .p-feature-media { order: -1; }
+  .p-feature.is-phone { grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr); }
+}
+.p-feature-copy { display: flex; flex-direction: column; gap: var(--sp-4); }
+.p-feature-copy h3 { font-family: var(--font-display); font-stretch: 125%; font-size: clamp(1.5rem, 2.8vw, 1.95rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.08; }
+.p-feature-media .p-browser { width: 100%; }
+.p-feature-media .p-phone { position: static; width: min(300px, 78%); margin-inline: auto; }
+
+.p-checks { list-style: none; display: grid; gap: 0.7rem; }
+.p-checks li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 0.6rem; color: var(--text-2); }
+.p-checks li i { color: var(--primary); font-size: 1.1rem; line-height: 1.5; }
+.p-checks strong { color: var(--text); font-weight: 600; }
+
+/* ---------- Planos ---------- */
+.p-plans-note { display: flex; flex-wrap: wrap; gap: 0.5rem 1.4rem; margin-top: var(--sp-5); color: var(--text-2); font-size: var(--fs-sm); }
+.p-plans-note span { display: inline-flex; align-items: center; gap: 0.45rem; }
+.p-plans-note i { color: var(--primary); }
+
+/* ---------- Perguntas ---------- */
+.p-faq { display: grid; gap: var(--sp-3); max-width: 820px; }
+.p-faq details { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.p-faq summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.p-faq summary::-webkit-details-marker { display: none; }
+.p-faq summary::after { content: '\F64D'; font-family: 'bootstrap-icons'; color: var(--primary); transition: transform 0.2s var(--ease); }
+.p-faq details[open] summary::after { transform: rotate(45deg); }
+.p-faq details p { padding: 0 var(--sp-5) var(--sp-5); color: var(--text-2); }
+
+/* ---------- Rodapé ---------- */
+.p-footer { padding-block: var(--sp-6); border-top: 1px solid var(--line); color: var(--text-3); font-size: var(--fs-sm); }
+.p-footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-4); }
+.p-footer nav { display: flex; flex-wrap: wrap; gap: var(--sp-5); }
+.p-footer a:hover { color: var(--text); }
+
+/* ---------- Criar barbearia / Entrar ---------- */
+.p-auth { display: grid; min-height: calc(100vh - var(--header-h)); }
+@media (min-width: 1000px) { .p-auth { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); } }
+.p-auth-side {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--sp-5);
+  padding: var(--sp-7);
+  border-right: 1px solid var(--line);
+  background:
+    radial-gradient(120% 80% at 0% 100%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 60%),
+    var(--bg-raised);
+}
+@media (min-width: 1000px) { .p-auth-side { display: flex; } }
+.p-auth-main { display: flex; align-items: flex-start; justify-content: center; padding: var(--sp-6) var(--gutter) var(--sp-8); }
+@media (min-width: 1000px) { .p-auth-main { align-items: center; } }
+.p-card { width: min(480px, 100%); display: flex; flex-direction: column; gap: var(--sp-5); }
+.p-card h1 { font-family: var(--font-display); font-stretch: 125%; font-size: clamp(1.8rem, 4.6vw, 2.3rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; }
+.p-card form { display: flex; flex-direction: column; gap: var(--sp-4); }
+.p-alt { color: var(--text-2); text-align: center; }
+
+.p-steps { list-style: none; counter-reset: step; display: grid; gap: var(--sp-4); }
+.p-steps li { counter-increment: step; display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: var(--sp-3); color: var(--text-2); }
+.p-steps li::before {
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--primary-line);
+  border-radius: 50%;
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+.p-steps strong { display: block; color: var(--text); }
+
+/* Endereço da barbearia: prefixo do site + nome */
+.slug-field { display: flex; align-items: stretch; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface-2); overflow: hidden; }
+.slug-field:hover { border-color: rgba(243, 222, 190, 0.3); }
+.field.invalid .slug-field { border-color: var(--danger); }
+.slug-field:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+.slug-prefix { display: block; flex: 0 1 auto; min-width: 3ch; align-self: center; padding: 0 0.15rem 0 0.8rem; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slug-field .input { flex: 1 0 9ch; }
+.slug-field .input, .field.invalid .slug-field .input { border: 0; box-shadow: none; background: transparent; padding-left: 0.1rem; min-width: 0; }
+.slug-state { display: inline-flex; align-items: center; gap: 0.35rem; font-size: var(--fs-sm); }
+.slug-state.ok { color: var(--success); }
+.slug-state.bad { color: var(--danger); }
+.slug-state.wait { color: var(--text-3); }
+
+.p-shops { display: grid; gap: var(--sp-2); }
+.p-shop {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+.p-shop:hover { border-color: var(--primary-line); color: var(--text); }
+.p-shop .grow { display: flex; flex-direction: column; min-width: 0; }
+.p-shop small { color: var(--text-3); overflow-wrap: anywhere; }
+.p-shop > i { color: var(--primary); }
+
+/* Planos com a tipografia do produto */
+.p-body .plan-name { font-stretch: 125%; font-weight: 800; text-transform: none; letter-spacing: -0.02em; font-size: 1.35rem; }
+.p-body .plan-price strong { font-weight: 800; letter-spacing: -0.02em; }
+.p-body .plan-card.is-featured { border-color: rgba(229, 72, 77, 0.45); background: linear-gradient(180deg, rgba(229, 72, 77, 0.1), var(--surface) 60%); }

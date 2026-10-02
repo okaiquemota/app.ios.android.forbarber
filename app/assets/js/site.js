@@ -148,6 +148,7 @@ window.App.ready(function () {
                  <button type="button" class="btn btn-ghost btn-block" data-logout><i class="bi bi-box-arrow-right"></i>Sair</button>`
           : html`<a class="btn btn-outline btn-block" href="login.html"><i class="bi bi-person-circle"></i>Entrar / Criar conta</a>`}
         <a class="btn btn-whatsapp btn-block" data-link="whatsapp" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i>Chamar no WhatsApp</a>
+        <button type="button" class="btn btn-ghost btn-block" data-install ${App.pwa && App.pwa.available() ? '' : raw('hidden')}><i class="bi bi-phone"></i>Instalar o app no celular</button>
       </div>`;
   }
 
@@ -212,7 +213,10 @@ window.App.ready(function () {
       </div>
       <div class="container footer-bottom">
         <span>© <span data-bind="year"></span> <span data-bind="name"></span>. Todos os direitos reservados.</span>
-        <a href="login.html"><i class="bi bi-lock"></i> Área da equipe</a>
+        <span class="footer-actions">
+          <button type="button" class="link-btn" data-install ${App.pwa && App.pwa.available() ? '' : raw('hidden')}><i class="bi bi-phone"></i> Instalar app</button>
+          <a href="login.html"><i class="bi bi-lock"></i> Área da equipe</a>
+        </span>
       </div>`;
   }
 

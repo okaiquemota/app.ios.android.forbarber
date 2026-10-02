@@ -16,6 +16,8 @@
   let me = null; // { kind: 'staff' | 'client' | 'pending', user, authUser }
   let channel = null;
   let queue = Promise.resolve();
+  // Guardado antes do Supabase limpar o endereço (link de recuperação de senha)
+  const LANDING_URL = location.hash + location.search;
 
   /* ---------- Cliente Supabase ---------- */
   function loadScript(src) {
@@ -41,7 +43,7 @@
   const FIELDS = {
     services: { name: 'name', category: 'category', description: 'description', duration: 'duration', price: 'price', featured: 'featured', active: 'active', position: 'position' },
     barbers: { name: 'name', title: 'title', specialty: 'specialty', bio: 'bio', color: 'color', photo: 'photo', workDays: 'work_days', commission: 'commission', active: 'active' },
-    clients: { name: 'name', phone: 'phone', email: 'email', birthday: 'birthday', notes: 'notes', active: 'active' },
+    clients: { name: 'name', phone: 'phone', email: 'email', birthday: 'birthday', active: 'active' },
     appointments: { clientId: 'client_id', barberId: 'barber_id', services: 'services', date: 'date', start: 'start_time', duration: 'duration', total: 'total', status: 'status', paymentMethod: 'payment_method', notes: 'notes', source: 'source', overbook: 'overbook' },
     blocks: { barberId: 'barber_id', date: 'date', start: 'start_time', end: 'end_time', reason: 'reason' },
     messages: { name: 'name', email: 'email', phone: 'phone', subject: 'subject', message: 'message', read: 'read' },
@@ -66,7 +68,7 @@
     services: (r) => ({ id: r.id, name: r.name, category: r.category, description: r.description, duration: r.duration, price: Number(r.price), featured: r.featured, active: r.active, position: r.position, createdAt: r.created_at }),
     barbers: (r) => ({ id: r.id, name: r.name, title: r.title, specialty: r.specialty, bio: r.bio, color: r.color, photo: r.photo, workDays: r.work_days || [], commission: Number(r.commission), active: r.active, createdAt: r.created_at }),
     clients: (r) => ({
-      id: r.id, role: 'cliente', name: r.name, phone: r.phone, email: r.email, birthday: r.birthday || '', notes: r.notes,
+      id: r.id, role: 'cliente', name: r.name, phone: r.phone, email: r.email, birthday: r.birthday || '',
       active: r.active, createdAt: r.created_at, barberId: null, userId: r.user_id,
       passwordHash: r.user_id ? 'conta-online' : null, salt: null,
     }),
@@ -87,6 +89,7 @@
     const code = err && err.code;
     if (code === '23P01' || /no_overlap/.test(msg)) return 'Esse horário conflita com outro agendamento. Ative o encaixe ou escolha outro horário.';
     if (code === '42501' || /row-level security|permission denied/i.test(msg)) return 'Seu acesso não permite essa ação.';
+    if (code === '23505' && /slug/.test(msg)) return 'Esse endereço acabou de ser usado por outra barbearia. Escolha outro.';
     if (/Invalid login credentials/i.test(msg)) return 'E-mail ou senha incorretos. Confira e tente de novo.';
     if (/Email not confirmed/i.test(msg)) return 'Confirme seu e-mail pelo link que enviamos antes de entrar.';
     if (/already registered|already been registered/i.test(msg)) return 'Já existe uma conta com este e-mail. Entre ou recupere sua senha.';
@@ -144,15 +147,18 @@
 
     if (me && me.kind === 'staff') {
       const isAdmin = me.user.role === 'admin';
-      const [clients, appts, blocks, members, messages, invites] = await Promise.all([
+      const [clients, notes, appts, blocks, members, messages, invites] = await Promise.all([
         selectAll('clients', (q) => q.eq('shop_id', shop.id)),
+        selectAll('client_notes', (q) => q.eq('shop_id', shop.id)),
         selectAll('appointments', (q) => q.eq('shop_id', shop.id).gte('date', App.utils.addDays(t, -400))),
         selectAll('blocks', (q) => q.eq('shop_id', shop.id).gte('date', App.utils.addDays(t, -30))),
         selectAll('shop_members', (q) => q.eq('shop_id', shop.id)),
         isAdmin ? selectAll('messages', (q) => q.eq('shop_id', shop.id)) : Promise.resolve([]),
         isAdmin ? selectAll('shop_invites', (q) => q.eq('shop_id', shop.id)) : Promise.resolve([]),
       ]);
-      data.users = [...members.map(FROM.members), ...clients.map(FROM.clients)];
+      // Ficha do cliente fica numa tabela só da equipe
+      const noteOf = new Map(notes.map((n) => [n.client_id, n.notes]));
+      data.users = [...members.map(FROM.members), ...clients.map((r) => ({ ...FROM.clients(r), notes: noteOf.get(r.id) || '' }))];
       data.appointments = appts.map(FROM.appointments);
       data.blocks = blocks.map(FROM.blocks);
       data.messages = messages.map(FROM.messages);
@@ -222,6 +228,10 @@
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter }, apply('messages', 'messages'))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'clients', filter }, apply('users', 'clients'))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'blocks', filter }, apply('blocks', 'blocks'))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'client_notes', filter }, (payload) => {
+        const row = payload.new;
+        if (row && row.client_id && App.db.user(row.client_id)) App.db.applyRemote('users', 'UPDATE', row.client_id, { notes: row.notes });
+      })
       .subscribe();
   }
 
@@ -250,24 +260,32 @@
           kind = 'clients';
         }
         if (!table) return;
-        let q;
+        let q = null;
         if (op === 'insert') {
           const row = toRow(kind, item);
           q = sb.from(table).insert({ ...row, id: item.id, shop_id: shop.id });
         } else if (op === 'update') {
           const row = toRow(kind, patch);
-          if (!Object.keys(row).length) return;
-          q = sb.from(table).update(row).eq('id', item.id);
+          if (Object.keys(row).length) q = sb.from(table).update(row).eq('id', item.id);
         } else {
           q = sb.from(table).delete().eq('id', item.id);
         }
-        const { error } = await q;
-        if (error) throw error;
+        if (q) {
+          const { error } = await q;
+          if (error) throw error;
+        }
+        const notes = op === 'insert' ? item.notes : patch && patch.notes;
+        if (kind === 'clients' && op !== 'delete' && notes !== undefined && (op === 'update' || notes)) await saveNotes(item.id, notes);
       } catch (err) {
         await onWriteError(err);
         throw err;
       }
     }).catch(() => {});
+  }
+
+  async function saveNotes(clientId, notes) {
+    const { error } = await sb.from('client_notes').upsert({ client_id: clientId, shop_id: shop.id, notes: notes || '' });
+    if (error) throw error;
   }
 
   async function writeMember(op, item, patch) {
@@ -284,6 +302,7 @@
       const kind = name === 'users' ? 'clients' : name;
       const { error } = await sb.from(TABLE[name] || 'clients').insert({ ...toRow(kind, obj), id: obj.id, shop_id: shop.id });
       if (error) throw new Error(friendly(error));
+      if (kind === 'clients' && obj.notes) await saveNotes(obj.id, obj.notes).catch(() => {});
       return obj;
     });
   }
@@ -414,7 +433,7 @@
   }
   async function hasRecoverySession() {
     await client();
-    const isRecovery = /type=recovery/.test(location.hash) || /type=recovery/.test(location.search);
+    const isRecovery = /type=recovery/.test(LANDING_URL) || /recuperar=1/.test(location.search);
     const { data: { session } } = await sb.auth.getSession();
     return !!session && isRecovery;
   }
@@ -439,6 +458,23 @@
     const { error } = await sb.storage.from('shop-assets').upload(path, blob, { contentType: blob.type, upsert: true });
     if (error) throw new Error(friendly(error));
     return sb.storage.from('shop-assets').getPublicUrl(path).data.publicUrl;
+  }
+
+  /* ---------- Assinatura: plano, teste grátis e se o agendamento online está no ar ---------- */
+  function subscription() {
+    if (!shop) return null;
+    const left = new Date(shop.trial_ends_at).getTime() - Date.now();
+    const trialing = shop.status === 'trialing';
+    return {
+      plan: shop.plan,
+      planInfo: (CFG.plans || []).find((p) => p.id === shop.plan) || null,
+      status: shop.status,
+      trialing,
+      trialEndsAt: shop.trial_ends_at,
+      daysLeft: Math.max(0, Math.ceil(left / 864e5)),
+      live: shop.status === 'active' || shop.status === 'past_due' || (trialing && left > 0),
+      createdAt: shop.created_at,
+    };
   }
 
   /* ---------- Produto (sem barbearia aberta): criar e listar barbearias ---------- */
@@ -467,6 +503,7 @@
     invite, cancelInvite, uploadImage,
     slugAvailable, createShop, myShops, session, client,
     shop: () => shop,
+    subscription,
     current: () => (me && me.kind !== 'pending' ? me.user : null),
     pendingEmail: () => (me && me.kind === 'pending' && me.authUser ? me.authUser.email : null),
     newId: () => (window.crypto && crypto.randomUUID ? crypto.randomUUID() : null),

@@ -69,6 +69,7 @@ body.painel { background: var(--bg); }
   color: var(--text-2);
   font-weight: 500;
 }
+button.side-link { width: 100%; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; }
 .side-link > i { width: 20px; text-align: center; font-size: 1.08rem; }
 .side-link:hover { background: var(--surface-2); color: var(--text); }
 .side-link[aria-current='page'] { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
@@ -553,3 +554,34 @@ body.painel { background: var(--bg); }
 .file-btn { position: relative; overflow: hidden; }
 .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .danger-zone { border-color: rgba(229, 87, 79, 0.35); }
+
+/* ---------- Assinatura ---------- */
+.sub-card { display: flex; flex-direction: column; gap: var(--sp-4); }
+.sub-card.is-warn { border-left: 3px solid var(--warning); }
+.sub-title { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; letter-spacing: 0.02em; line-height: 1.15; }
+.sub-facts { display: grid; gap: var(--sp-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.sub-facts > div { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; overflow-wrap: anywhere; }
+.sub-facts .k { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); }
+
+/* ---------- Primeiros passos ---------- */
+.start-body { display: grid; gap: var(--sp-5); }
+@media (min-width: 1000px) { .start-body { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: start; } }
+.start-steps { list-style: none; display: grid; gap: var(--sp-2); grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+.start-steps a {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 0.65rem;
+  height: 100%;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text);
+}
+.start-steps a:hover { border-color: var(--primary-line); color: var(--text); }
+.start-steps i { color: var(--primary); font-size: 1.15rem; line-height: 1.35; }
+.start-steps .is-done i { color: var(--success); }
+.start-steps .is-done strong { color: var(--text-2); text-decoration: line-through; text-decoration-color: var(--text-3); }
+.start-steps span { display: flex; flex-direction: column; min-width: 0; }
+.start-steps small { color: var(--text-3); font-size: 0.85rem; line-height: 1.4; }
+.start-link { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; overflow-wrap: anywhere; }

@@ -3,20 +3,6 @@
    agendamento online, login/cadastro e área do cliente.
    ========================================================================== */
 
-/* ---------- Pular para o conteúdo ---------- */
-.skip-link {
-  position: absolute;
-  left: 12px;
-  top: -80px;
-  z-index: 300;
-  padding: 0.6rem 1rem;
-  border-radius: 4px;
-  background: var(--primary);
-  color: var(--primary-ink);
-  font-weight: 700;
-}
-.skip-link:focus { top: 12px; color: var(--primary-ink); }
-
 /* ---------- Cabeçalho ---------- */
 .site-header {
   position: sticky;
@@ -587,6 +573,10 @@ a.board-item:hover .board-book { color: var(--primary); }
   font-size: var(--fs-sm);
   color: var(--text-3);
 }
+
+.footer-actions { display: flex; flex-wrap: wrap; gap: var(--sp-5); }
+.link-btn { padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+.footer-bottom a:hover, .link-btn:hover { color: var(--text); }
 
 /* ---------- Botão flutuante do WhatsApp ---------- */
 .wa-float {
