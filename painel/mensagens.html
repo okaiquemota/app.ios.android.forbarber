@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-base="../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mensagens · Grey Barber</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0d0c0a">
+  <link rel="icon" type="image/png" href="../assets/img/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@700&family=Rye&display=swap">
+  <link rel="stylesheet" href="../assets/vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/painel.css">
+</head>
+<body class="painel" data-page="mensagens" data-title="Mensagens">
+  <div class="shell">
+    <aside class="side" id="side" aria-label="Menu do painel"></aside>
+    <div class="main">
+      <header class="topbar" id="topbar"></header>
+      <main class="content" id="conteudo">
+        <div class="page-head">
+          <div><h1>Mensagens</h1><p>Recebidas pelo formulário de contato do site.</p></div>
+        </div>
+        <div class="filters">
+          <div class="seg" id="filter"><button type="button" data-f="todas" aria-pressed="true">Todas</button><button type="button" data-f="naolidas" aria-pressed="false">Não lidas</button></div>
+          <div class="search"><i class="bi bi-search" aria-hidden="true"></i><input class="input" id="f-q" placeholder="Buscar" aria-label="Buscar"></div>
+        </div>
+        <section class="panel"><div class="panel-body flush" id="list"></div></section>
+      </main>
+    </div>
+  </div>
+
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/seed.js"></script>
+  <script src="../assets/js/store.js"></script>
+  <script src="../assets/js/booking.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="../assets/js/painel.js"></script>
+  <script src="../assets/js/painel/mensagens.js"></script>
+</body>
+</html>

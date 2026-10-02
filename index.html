@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Grey Barber</title>
+  <meta name="description" content="Barbearia em Ribeirão Preto: corte, barba e acabamento com hora marcada. Agende online em menos de um minuto.">
+  <meta name="theme-color" content="#0d0c0a">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Grey Barber · Barbearia">
+  <meta property="og:description" content="Tradição e estilo em cada detalhe. Agende seu horário online.">
+  <meta property="og:image" content="assets/img/ambiente.jpg">
+  <link rel="icon" type="image/png" href="assets/img/favicon.png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@700&family=Rye&display=swap">
+  <link rel="stylesheet" href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/site.css">
+</head>
+<body data-page="home">
+  <header class="site-header" id="site-header"></header>
+
+  <main id="conteudo">
+    <!-- HERO -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-media" data-hero-image></div>
+      <div class="container hero-inner">
+        <div class="hero-copy">
+          <div id="open-status"></div>
+          <h1 class="hero-title" id="hero-title" data-bind="name">Grey Barber</h1>
+          <p class="hero-slogan" data-bind="slogan">Tradição e estilo em cada detalhe</p>
+          <p class="lead">Corte, barba e acabamento com hora marcada. Escolha o barbeiro, veja os horários livres e confirme em menos de um minuto.</p>
+          <div class="hero-ctas">
+            <a class="btn btn-primary btn-lg" href="agendar.html"><i class="bi bi-calendar-plus"></i>Agendar horário</a>
+            <a class="btn btn-outline btn-lg" href="servicos.html">Serviços e preços</a>
+          </div>
+          <div class="hero-facts" id="hero-facts"></div>
+        </div>
+        <aside class="next-slot" id="next-slot" aria-live="polite"></aside>
+      </div>
+    </section>
+
+    <!-- SOBRE -->
+    <section class="section" id="sobre" aria-labelledby="sobre-title">
+      <div class="container about">
+        <div class="about-media">
+          <img src="assets/img/barbeiro.jpg" alt="Barbeiro finalizando um corte degradê em um cliente" width="1536" height="1024" loading="lazy">
+          <div class="about-stamp"><span>Desde</span><strong data-bind="founded">2019</strong></div>
+        </div>
+        <div class="about-copy">
+          <span class="eyebrow">A barbearia</span>
+          <h2 class="section-title" id="sobre-title">Cadeira de couro, navalha afiada e conversa boa</h2>
+          <p class="lead" data-bind="about"></p>
+          <div class="cluster">
+            <a class="btn btn-primary" href="agendar.html">Agendar agora</a>
+            <a class="link" href="#visite">Como chegar <i class="bi bi-arrow-right"></i></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVIÇOS -->
+    <section class="section" id="servicos" aria-labelledby="servicos-title">
+      <div class="container">
+        <div class="section-head">
+          <div class="titles">
+            <span class="eyebrow">Serviços</span>
+            <h2 class="section-title" id="servicos-title">Tabela de preços</h2>
+          </div>
+          <a class="link" href="servicos.html">Ver todos os serviços <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="board" id="home-services"></div>
+      </div>
+    </section>
+
+    <!-- EQUIPE -->
+    <section class="section alt" id="equipe" aria-labelledby="equipe-title">
+      <div class="container">
+        <div class="section-head">
+          <div class="titles">
+            <span class="eyebrow">Equipe</span>
+            <h2 class="section-title" id="equipe-title">Quem cuida do seu visual</h2>
+            <p class="lead">Escolha seu barbeiro de confiança na hora de agendar, ou fique com o primeiro horário livre.</p>
+          </div>
+        </div>
+        <div class="team" id="home-team"></div>
+      </div>
+    </section>
+
+    <!-- AVALIAÇÕES -->
+    <section class="section" id="avaliacoes" aria-labelledby="avaliacoes-title">
+      <div class="container">
+        <div class="section-head">
+          <div class="titles">
+            <span class="eyebrow">Avaliações</span>
+            <h2 class="section-title" id="avaliacoes-title">Quem senta na cadeira, volta</h2>
+          </div>
+          <div class="rating-summary" id="rating-summary"></div>
+        </div>
+        <div class="reviews" id="home-reviews"></div>
+      </div>
+    </section>
+
+    <!-- VISITE -->
+    <section class="section alt" id="visite" aria-labelledby="visite-title">
+      <div class="container">
+        <div class="section-head">
+          <div class="titles">
+            <span class="eyebrow">Visite a gente</span>
+            <h2 class="section-title" id="visite-title">Endereço e horários</h2>
+          </div>
+        </div>
+        <div class="visit">
+          <div class="map-card" id="map-card">
+            <span class="eyebrow plain"><i class="bi bi-geo-alt-fill" aria-hidden="true"></i><span data-bind="district"></span></span>
+            <p class="map-address"><span data-bind="street"></span><br><span data-bind="city"></span></p>
+            <div class="cluster">
+              <button class="btn btn-primary btn-sm" type="button" data-load-map><i class="bi bi-map"></i>Ver mapa aqui</button>
+              <a class="btn btn-outline btn-sm" data-link="maps" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i>Abrir no Google Maps</a>
+            </div>
+          </div>
+          <div class="visit-info">
+            <div>
+              <h3 class="group-label">Horário de funcionamento</h3>
+              <div id="home-hours"></div>
+            </div>
+            <div class="stack-sm">
+              <h3 class="group-label">Fale com a gente</h3>
+              <a class="btn btn-whatsapp" data-link="whatsapp" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i>Chamar no WhatsApp</a>
+              <a class="btn btn-outline" data-link="tel"><i class="bi bi-telephone"></i><span data-bind="phone"></span></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <noscript><p class="container">Ative o JavaScript para agendar online e ver os horários livres.</p></noscript>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script src="assets/js/booking.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/site.js"></script>
+  <script src="assets/js/pages/home.js"></script>
+</body>
+</html>

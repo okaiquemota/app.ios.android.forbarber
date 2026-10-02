@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Entrar · Grey Barber</title>
+  <meta name="description" content="Acesse sua conta para agendar, cancelar e acompanhar seus horários.">
+  <meta name="theme-color" content="#0d0c0a">
+  <link rel="icon" type="image/png" href="assets/img/favicon.png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@700&family=Rye&display=swap">
+  <link rel="stylesheet" href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/site.css">
+</head>
+<body data-page="login" data-title="Entrar" data-whatsapp="off">
+  <header class="site-header" id="site-header"></header>
+
+  <main id="conteudo" class="auth">
+    <div class="auth-visual">
+      <span class="eyebrow">Área do cliente e da equipe</span>
+      <blockquote>Hora marcada, sem fila e com o barbeiro que você confia.</blockquote>
+    </div>
+
+    <div class="auth-main">
+      <div class="auth-card" id="auth-card">
+        <div class="stack-sm">
+          <h1>Entrar</h1>
+          <p class="muted">Clientes acompanham os horários. A equipe acessa o painel da barbearia.</p>
+        </div>
+        <div id="login-context"></div>
+
+        <form id="login-form" novalidate>
+          <div class="field">
+            <label class="label" for="email">E-mail</label>
+            <div class="input-icon">
+              <i class="bi bi-envelope" aria-hidden="true"></i>
+              <input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="nome@email.com" required>
+            </div>
+          </div>
+          <div class="field">
+            <div class="spread">
+              <label class="label" for="password">Senha</label>
+              <a class="link text-sm" href="senha.html">Esqueci a senha</a>
+            </div>
+            <div class="input-icon">
+              <i class="bi bi-lock" aria-hidden="true"></i>
+              <input class="input" id="password" name="password" type="password" autocomplete="current-password" required>
+              <button type="button" class="input-action" data-toggle-password aria-label="Mostrar senha"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+          <label class="check"><input type="checkbox" name="remember" checked> Manter conectado neste aparelho</label>
+          <button class="btn btn-primary btn-lg btn-block" type="submit"><i class="bi bi-box-arrow-in-right"></i>Entrar</button>
+        </form>
+
+        <p class="auth-alt">Ainda não tem conta? <a class="link" id="signup-link" href="cadastro.html">Criar conta grátis</a></p>
+
+        <div class="demo-box" id="demo" hidden>
+          <span class="group-label">Acessos de demonstração</span>
+          <p class="text-sm muted">Clique em um perfil para entrar. Senha de todos: <strong>demo123</strong></p>
+          <div class="demo-accounts">
+            <button type="button" class="demo-account" data-demo="admin@demo.com">
+              <span class="avatar avatar-sm" style="--av-bg:#3987e5;--av-fg:#fff"><i class="bi bi-shield-lock"></i></span>
+              <span class="grow"><strong>Dono / administrador</strong><span>admin@demo.com · painel completo</span></span>
+              <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="demo-account" data-demo="barbeiro@demo.com">
+              <span class="avatar avatar-sm" style="--av-bg:#d95926;--av-fg:#fff"><i class="bi bi-scissors"></i></span>
+              <span class="grow"><strong>Barbeiro</strong><span>barbeiro@demo.com · agenda e clientes</span></span>
+              <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="demo-account" data-demo="cliente@demo.com">
+              <span class="avatar avatar-sm" style="--av-bg:#199e70;--av-fg:#fff"><i class="bi bi-person"></i></span>
+              <span class="grow"><strong>Cliente</strong><span>cliente@demo.com · agendamentos e fidelidade</span></span>
+              <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script src="assets/js/booking.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/site.js"></script>
+  <script src="assets/js/pages/login.js"></script>
+</body>
+</html>
