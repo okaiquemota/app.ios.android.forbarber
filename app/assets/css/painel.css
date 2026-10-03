@@ -579,3 +579,14 @@ button.side-link { width: 100%; border: 0; background: none; font: inherit; text
 .start-steps span { display: flex; flex-direction: column; min-width: 0; }
 .start-steps small { color: var(--text-3); font-size: 0.85rem; line-height: 1.4; }
 .start-link { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; overflow-wrap: anywhere; }
+
+/* ---------- Clube e lista de espera ---------- */
+.club-plan.is-off { opacity: 0.6; }
+.wait-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: var(--sp-3); align-items: center; padding: 0.85rem 1.15rem; border-bottom: 1px solid var(--line); }
+.wait-row:last-child { border-bottom: 0; }
+.wait-row .cell-main { display: flex; align-items: center; gap: 0.7rem; min-width: 0; }
+.wait-row .cell-main .grow strong { display: block; }
+.wait-row .cell-main .grow span { font-size: 0.84rem; color: var(--text-3); }
+.wait-slots .chip-sm { min-height: 28px; padding: 0.1rem 0.6rem; font-size: 0.82rem; margin: 2px; }
+.wait-row .actions { display: flex; align-items: center; gap: 0.4rem; justify-content: flex-end; }
+@media (max-width: 800px) { .wait-row { grid-template-columns: 1fr; } .wait-row .actions { justify-content: flex-start; } }

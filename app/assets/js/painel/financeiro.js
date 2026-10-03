@@ -42,15 +42,19 @@ window.App.ready(function () {
     const done = query(r, 'concluido');
     const prevDone = query(pr, 'concluido');
     const noShows = query(r, 'faltou').length;
-    const revenue = U.sum(done, (a) => a.total);
-    const prevRevenue = U.sum(prevDone, (a) => a.total);
-    const commission = U.sum(done, (a) => (a.total * ((db.barber(a.barberId) || {}).commission || 0)) / 100);
+    // Clube: mensalidades entram no faturamento; a comissão do atendimento do clube usa o preço de tabela
+    const clubIn = (x) => (state.barber ? 0 : U.sum(App.club.payments().filter((p) => p.paidAt.slice(0, 10) >= x.from && p.paidAt.slice(0, 10) <= x.to), (p) => p.amount));
+    const clubRevenue = clubIn(r);
+    const revenue = U.sum(done, (a) => a.total) + clubRevenue;
+    const prevRevenue = U.sum(prevDone, (a) => a.total) + clubIn(pr);
+    const commissionOf = (a) => ((a.total + (a.clubValue || 0)) * ((db.barber(a.barberId) || {}).commission || 0)) / 100;
+    const commission = U.sum(done, commissionOf);
     const ticket = done.length ? revenue / done.length : 0;
     const prevTicket = prevDone.length ? prevRevenue / prevDone.length : 0;
     $('#period-label').textContent = `${r.label} · ${U.fmtDate(r.from)} a ${U.fmtDate(r.to)}${state.barber ? ` · ${(db.barber(state.barber) || {}).name}` : ''}`;
 
     $('#kpis').innerHTML = html`
-      <div class="kpi"><span class="kpi-label"><i class="bi bi-cash-coin"></i>Faturamento</span><span class="kpi-value">${U.money(revenue)}</span><span class="kpi-sub">${delta(revenue, prevRevenue)}</span></div>
+      <div class="kpi"><span class="kpi-label"><i class="bi bi-cash-coin"></i>Faturamento</span><span class="kpi-value">${U.money(revenue)}</span><span class="kpi-sub">${delta(revenue, prevRevenue)}${clubRevenue ? html`<span>· ${U.money(clubRevenue)} do clube</span>` : ''}</span></div>
       <div class="kpi"><span class="kpi-label"><i class="bi bi-receipt"></i>Ticket médio</span><span class="kpi-value">${U.money(ticket)}</span><span class="kpi-sub">${delta(ticket, prevTicket)}</span></div>
       <div class="kpi"><span class="kpi-label"><i class="bi bi-wallet2"></i>Comissões a pagar</span><span class="kpi-value">${U.money(commission)}</span><span class="kpi-sub"><span>líquido da casa ${U.money(revenue - commission)}</span></span></div>
       <div class="kpi"><span class="kpi-label"><i class="bi bi-person-x"></i>Faltas</span><span class="kpi-value">${noShows}</span><span class="kpi-sub"><span>${U.percent(noShows / Math.max(1, noShows + done.length), 1)} dos atendimentos · ${done.length} concluídos</span></span></div>`.toString();
@@ -80,7 +84,7 @@ window.App.ready(function () {
     const perBarber = db.barbers().map((b) => {
       const list = done.filter((a) => a.barberId === b.id);
       const v = U.sum(list, (a) => a.total);
-      return { b, n: list.length, v, c: (v * (b.commission || 0)) / 100 };
+      return { b, n: list.length, v, c: U.sum(list, commissionOf) };
     }).filter((x) => x.n || !state.barber).filter((x) => !state.barber || x.b.id === state.barber);
     const maxV = Math.max(1, ...perBarber.map((x) => x.v));
     $('#by-barber').innerHTML = html`<div class="table-wrap"><table class="table">
@@ -139,7 +143,7 @@ window.App.ready(function () {
         { label: 'Profissional', value: (a) => (db.barber(a.barberId) || {}).name || '' },
         { label: 'Pagamento', value: (a) => (a.paymentMethod ? B.PAYMENTS[a.paymentMethod].label : '') },
         { label: 'Valor', value: (a) => U.number(a.total, 2) },
-        { label: 'Comissão', value: (a) => U.number((a.total * ((db.barber(a.barberId) || {}).commission || 0)) / 100, 2) },
+        { label: 'Comissão', value: (a) => U.number(((a.total + (a.clubValue || 0)) * ((db.barber(a.barberId) || {}).commission || 0)) / 100, 2) },
       ]);
       U.download(`financeiro-${r.from}-a-${r.to}.csv`, csv, 'text/csv;charset=utf-8');
     }

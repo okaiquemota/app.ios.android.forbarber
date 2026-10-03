@@ -12,10 +12,20 @@
   const U = App.utils;
 
   const CLOUD = !!(window.FORBARBER && window.FORBARBER.mode === 'cloud');
-  const KEY = 'barbearia:db:v1';
+  // v2: clube de assinatura, lista de espera e sinal (a demonstração é recriada)
+  const KEY = 'barbearia:db:v2';
   const VERSION = 1;
   const COLLECTIONS = ['services', 'barbers', 'users', 'appointments', 'blocks', 'messages', 'reviews'];
-  const PREFIX = { services: 's', barbers: 'b', users: 'c', appointments: 'a', blocks: 'bl', messages: 'm', reviews: 'r' };
+  // Coleções que chegaram depois (clube de assinatura e lista de espera): completadas se faltarem
+  const EXTRA = ['plans', 'subscriptions', 'subPayments', 'waitlist'];
+  const PREFIX = {
+    services: 's', barbers: 'b', users: 'c', appointments: 'a', blocks: 'bl', messages: 'm', reviews: 'r',
+    plans: 'pl', subscriptions: 'sb', subPayments: 'sp', waitlist: 'w',
+  };
+  const ensureExtra = (d) => {
+    EXTRA.forEach((c) => { if (!Array.isArray(d[c])) d[c] = []; });
+    return d;
+  };
 
   let data = null;
   let storageOk = true;
@@ -46,8 +56,9 @@
       data = App.seed.create();
       persist();
     }
-    // Completa configurações novas que não existiam numa versão salva anterior
+    // Completa configurações e coleções novas que não existiam numa versão salva anterior
     data.settings = { ...App.seed.DEFAULT_SETTINGS, ...data.settings };
+    ensureExtra(data);
     data.meta = data.meta || {};
     if (maintainDemo()) persist();
   }
@@ -85,7 +96,7 @@
     try {
       const parsed = JSON.parse(e.newValue);
       if (isValid(parsed)) {
-        data = parsed;
+        data = ensureExtra(parsed);
         emit('remote');
       }
     } catch (err) { /* ignora */ }
@@ -126,6 +137,19 @@
     data.blocks.forEach((b) => {
       b.date = U.addDays(b.date, days);
       b.createdAt = shift(b.createdAt);
+    });
+    data.subscriptions.forEach((x) => {
+      ['startedAt', 'periodStart', 'periodEnd'].forEach((k) => { if (x[k]) x[k] = U.addDays(x[k], days); });
+      x.createdAt = shift(x.createdAt);
+    });
+    data.subPayments.forEach((x) => {
+      ['periodStart', 'periodEnd'].forEach((k) => { if (x[k]) x[k] = U.addDays(x[k], days); });
+      x.paidAt = shift(x.paidAt);
+      x.createdAt = shift(x.createdAt);
+    });
+    data.waitlist.forEach((x) => {
+      x.date = U.addDays(x.date, days);
+      x.createdAt = shift(x.createdAt);
     });
     ['messages', 'reviews', 'users'].forEach((c) =>
       data[c].forEach((x) => {
@@ -189,7 +213,7 @@
 
   /* Usados pela nuvem: recarregar tudo e aplicar mudanças de outros aparelhos */
   function replaceData(next) {
-    data = next;
+    data = ensureExtra(next);
     emit('remote');
   }
   function applyRemote(name, event, id, obj) {
@@ -312,6 +336,9 @@
     data.blocks = [];
     data.messages = [];
     data.reviews = [];
+    data.subscriptions = [];
+    data.subPayments = [];
+    data.waitlist = [];
     data.users = data.users.filter((u) => u.role !== 'cliente');
     data.settings.demoMode = false;
     return commit();
@@ -322,7 +349,7 @@
     if (!isValid(parsed)) throw new Error('Arquivo de backup inválido.');
     parsed.version = VERSION;
     parsed.meta = parsed.meta || {};
-    data = parsed;
+    data = ensureExtra(parsed);
     return commit();
   }
   const subscribe = (fn) => {
@@ -337,12 +364,13 @@
     return {
       version: VERSION, meta: {}, settings: { ...App.seed.DEFAULT_SETTINGS, demoMode: false },
       services: [], barbers: [], users: [], appointments: [], blocks: [], messages: [], reviews: [],
+      plans: [], subscriptions: [], subPayments: [], waitlist: [],
     };
   }
   if (CLOUD) {
     data = emptyData();
     App.booted = App.cloud.boot().then((d) => {
-      data = d;
+      data = ensureExtra(d);
     });
   } else {
     load();

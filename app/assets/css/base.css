@@ -796,3 +796,33 @@ html.is-native .site-header, html.is-native .topbar, html.is-native .p-header { 
 html.is-native .demo-ribbon { display: none; }
 html.is-native .side { padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
 html.is-native .mobile-nav { top: calc(var(--header-h) + var(--safe-top)); }
+
+/* ---------- Pix do sinal ---------- */
+.pix-box { display: grid; grid-template-columns: 148px minmax(0, 1fr); gap: var(--sp-4); align-items: start; padding: var(--sp-4); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.pix-qr { width: 148px; aspect-ratio: 1; border-radius: 10px; background: #fff; border: 1px solid var(--line); overflow: hidden; }
+.pix-qr svg { display: block; width: 100%; height: 100%; }
+.pix-body { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; align-items: flex-start; }
+.pix-code { display: flex; gap: 0.4rem; width: 100%; }
+.pix-code .input { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem; min-width: 0; }
+@media (max-width: 520px) { .pix-box { grid-template-columns: 1fr; justify-items: center; } .pix-body { align-items: stretch; } }
+
+/* ---------- Clube de assinatura (selo e cartões) ---------- */
+.club-tag { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.15rem 0.55rem; border-radius: 99px; background: #fef3c7; color: #92400e; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+.club-tag i { font-size: 0.85em; }
+.deposit-tag { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.15rem 0.55rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+.deposit-tag.pendente { background: var(--warning-soft); color: var(--warning); }
+.deposit-tag.pago { background: var(--success-soft); color: var(--success); }
+.club-card { display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-5); border-radius: var(--radius-lg); color: #fff; background: linear-gradient(135deg, #111827, #374151); box-shadow: var(--shadow); }
+.club-card .muted, .club-card .subtle { color: rgba(255, 255, 255, 0.75); }
+.club-card .uses { display: flex; gap: 6px; }
+.club-card .uses span { flex: 1; height: 6px; border-radius: 99px; background: rgba(255, 255, 255, 0.2); }
+.club-card .uses span.on { background: #fbbf24; }
+.club-plans { display: grid; gap: var(--sp-3); grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); }
+.club-plan { display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-5); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+.club-plan h3 { font-size: 1.05rem; font-weight: 700; }
+.club-plan .price { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+.club-plan .price small { font-size: 0.85rem; font-weight: 500; color: var(--text-3); }
+.club-plan ul { list-style: none; display: grid; gap: 0.35rem; font-size: 0.9rem; color: var(--text-2); }
+.club-plan li { display: flex; gap: 0.45rem; }
+.club-plan li i { color: var(--success); }
+.club-plan .btn { margin-top: auto; }

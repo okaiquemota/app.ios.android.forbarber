@@ -43,6 +43,14 @@
     bookingWindow: 30, // dias à frente liberados para agendamento
     cancelLimit: 2, // horas de antecedência para o cliente cancelar
     loyaltyTarget: 10, // atendimentos para ganhar um corte
+    // Sinal por Pix no agendamento online
+    depositEnabled: false,
+    depositMode: 'percentual', // 'percentual' ou 'fixo'
+    depositValue: 30,
+    depositScope: 'todos', // 'todos' ou 'novos_e_faltosos'
+    pixKey: '',
+    pixName: '',
+    pixCity: '',
     primaryColor: '#111827',
     fontStyle: 'classico',
     logo: '',
@@ -145,6 +153,8 @@
     };
 
     const settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+    // A demonstração mostra o sinal funcionando
+    Object.assign(settings, { depositEnabled: true, pixKey: 'contato@greybarber.com.br', pixName: 'Grey Barber', pixCity: 'Ribeirao Preto' });
     const interval = settings.slotInterval;
     const hoursOf = (iso) => settings.hours[U.weekday(iso)];
 
@@ -347,6 +357,99 @@
       });
     }
 
+    /* ---------- 3b) Clube de assinatura ---------- */
+    const plusMonth = (iso) => {
+      const d = U.parseDate(iso);
+      const day = d.getDate();
+      d.setDate(1);
+      d.setMonth(d.getMonth() + 1);
+      d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()));
+      return U.toISODate(d);
+    };
+    const plans = [
+      { id: 'pl-corte', name: 'Clube Corte', description: 'Até 4 cortes por mês e 10% nos outros serviços.', price: 99.9, usesPerPeriod: 4, serviceIds: ['s-corte', 's-pezinho'], discountOthers: 10, active: true, position: 1 },
+      { id: 'pl-completo', name: 'Clube Corte + Barba', description: 'Até 4 visitas por mês com corte e barba inclusos e 15% no resto.', price: 159.9, usesPerPeriod: 4, serviceIds: ['s-corte', 's-barba', 's-combo', 's-pezinho'], discountOthers: 15, active: true, position: 2 },
+      { id: 'pl-barba', name: 'Clube Barba', description: 'Barba feita toda semana: até 4 por mês.', price: 69.9, usesPerPeriod: 4, serviceIds: ['s-barba', 's-bigode'], discountOthers: 0, active: true, position: 3 },
+    ].map((x) => ({ ...x, createdAt: new Date(nowTs - 200 * 86400000).toISOString() }));
+    const planById = Object.fromEntries(plans.map((x) => [x.id, x]));
+    const subscriptions = [];
+    const subPayments = [];
+    const subDefs = [
+      [demo, 'pl-completo', 'ativa', 6, 9], [clients[1], 'pl-corte', 'ativa', 12, 5], [clients[2], 'pl-completo', 'ativa', 20, 3],
+      [clients[3], 'pl-barba', 'ativa', 3, 2], [clients[4], 'pl-corte', 'ativa', 25, 7], [clients[5], 'pl-corte', 'ativa', 9, 1],
+      [clients[6], 'pl-completo', 'ativa', 16, 4], [clients[7], 'pl-corte', 'vencida', 0, 3], [clients[8], 'pl-barba', 'cancelada', 0, 2],
+    ];
+    subDefs.forEach(([client, planId, kind, daysIn, months], i) => {
+      let periodStart = U.addDays(todayIso, -daysIn);
+      let periodEnd = U.addDays(plusMonth(periodStart), -1);
+      if (kind === 'vencida') {
+        // Venceu há 3 dias e ainda não renovou
+        periodEnd = U.addDays(todayIso, -3);
+        const d = U.parseDate(periodEnd);
+        d.setMonth(d.getMonth() - 1);
+        periodStart = U.addDays(U.toISODate(d), 1);
+      }
+      const sub = {
+        id: `sb-${i + 1}`, clientId: client.id, planId, status: kind === 'cancelada' ? 'cancelada' : 'ativa',
+        startedAt: periodStart, periodStart, periodEnd, notes: '', createdAt: new Date(tsOf(periodStart, 10 * 60)).toISOString(),
+      };
+      // Mensalidades pagas nos meses anteriores e no atual
+      let ps = periodStart;
+      for (let m = 0; m < months; m++) {
+        const pe = U.addDays(plusMonth(ps), -1);
+        subPayments.push({
+          id: `sp-${subPayments.length + 1}`, subscriptionId: sub.id, clientId: client.id, amount: planById[planId].price,
+          method: weighted([['pix', 70], ['credito', 30]]), paidAt: new Date(tsOf(ps, 9 * 60 + randInt(0, 600))).toISOString(),
+          periodStart: ps, periodEnd: pe, createdAt: new Date(tsOf(ps, 9 * 60)).toISOString(),
+        });
+        // mês anterior
+        const prev = U.parseDate(ps);
+        prev.setMonth(prev.getMonth() - 1);
+        ps = U.toISODate(prev);
+      }
+      sub.startedAt = ps;
+      subscriptions.push(sub);
+      if (kind !== 'ativa') return;
+      // Agendamentos do período usam o plano
+      const plan = planById[planId];
+      let used = 0;
+      appointments
+        .filter((a) => a.clientId === client.id && a.date >= periodStart && a.date <= periodEnd && (a.status === 'confirmado' || a.status === 'concluido'))
+        .sort((a, b) => (a.date < b.date ? -1 : 1))
+        .forEach((a) => {
+          const covered = a.services.filter((x) => plan.serviceIds.includes(x.id)).map((x) => x.id);
+          if (!covered.length || used >= plan.usesPerPeriod) return;
+          used++;
+          a.subscriptionId = sub.id;
+          a.coveredIds = covered;
+          a.clubValue = U.sum(a.services.filter((x) => covered.includes(x.id)), (x) => x.price);
+          a.total = Math.round(U.sum(a.services.filter((x) => !covered.includes(x.id)), (x) => x.price * (1 - plan.discountOthers / 100)) * 100) / 100;
+        });
+    });
+
+    /* ---------- 3c) Sinal por Pix em agendamentos do site ---------- */
+    appointments
+      .filter((a) => a.source === 'site' && a.status === 'confirmado' && a.date >= todayIso && a.date <= U.addDays(todayIso, 7) && a.total > 0 && !a.subscriptionId)
+      .forEach((a, i) => {
+        if (rnd() > 0.55) return;
+        a.depositAmount = Math.round(a.total * 0.3 * 100) / 100;
+        a.depositStatus = i % 4 === 1 ? 'pendente' : 'pago';
+        if (a.depositStatus === 'pago') a.depositPaidAt = a.createdAt;
+      });
+
+    /* ---------- 3d) Lista de espera ---------- */
+    const waitDay = U.addDays(todayIso, satOffset);
+    const tomorrow = U.addDays(todayIso, 1);
+    const waitlist = [
+      { client: clients[9], date: waitDay, period: 'manha', serviceIds: ['s-corte'], barberId: 'b-rodrigo', status: 'aguardando', notes: 'Pode ser qualquer horário até meio-dia.' },
+      { client: clients[10], date: waitDay, period: 'qualquer', serviceIds: ['s-combo'], barberId: null, status: 'aguardando', notes: '' },
+      { client: clients[11], date: tomorrow, period: 'tarde', serviceIds: ['s-barba'], barberId: null, status: 'aguardando', notes: 'Sai do trabalho às 17h.' },
+      { client: clients[12], date: tomorrow, period: 'manha', serviceIds: ['s-corte'], barberId: 'b-ze', status: 'avisado', notes: '' },
+    ].map((w, i) => ({
+      id: `w-${i + 1}`, clientId: w.client.id, date: w.date, period: w.period, serviceIds: w.serviceIds, barberId: w.barberId,
+      status: w.status, notes: w.notes, createdAt: new Date(nowTs - (i + 1) * 5 * 3600000).toISOString(),
+    }));
+
     /* ---------- 4) Avaliações ---------- */
     const reviews = REVIEWS.map((r, i) => {
       const client = clients.find((c) => c.name === r.name);
@@ -405,6 +508,10 @@
       blocks,
       messages,
       reviews,
+      plans,
+      subscriptions,
+      subPayments,
+      waitlist,
     };
   }
 

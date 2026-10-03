@@ -82,6 +82,32 @@ window.App.ready(function () {
       : UI.empty('bi-people', 'Equipe em atualização', 'Em breve você conhece nossos profissionais por aqui.');
   }
 
+  /** Planos do clube de assinatura */
+  function renderClub() {
+    const plans = App.club.plans({ active: true });
+    $('#clube').hidden = !plans.length;
+    document.querySelector('[data-club-tab]').hidden = !plans.length;
+    if (!plans.length) return;
+    const s = db.settings();
+    const user = App.auth.current();
+    const mine = user && !App.auth.isStaff(user) ? App.club.subscriptionOf(user.id) : null;
+    $('#home-club').innerHTML = html`${plans.map((p) => {
+      const isMine = mine && mine.planId === p.id && App.club.state(mine) === 'ativa';
+      const msg = `Olá! Quero assinar o ${p.name} (${U.money(p.price)}/mês) da ${s.name}.`;
+      return html`
+        <article class="club-plan">
+          <div class="stack-sm">
+            <h3>${p.name}</h3>
+            <div class="price">${U.money(p.price)}<small>/mês</small></div>
+          </div>
+          <ul>${App.club.features(p).map((f) => html`<li><i class="bi bi-check2"></i>${f}</li>`)}</ul>
+          ${isMine
+            ? html`<a class="btn btn-outline btn-block" href="minha-conta.html"><i class="bi bi-stars"></i>Seu plano</a>`
+            : html`<a class="btn btn-primary btn-block" href="${U.waLink(s.whatsapp, msg)}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i>Quero assinar</a>`}
+        </article>`;
+    })}`;
+  }
+
   function renderReviews() {
     const summary = db.ratingSummary();
     $('#rating-summary').innerHTML = summary.count
@@ -143,6 +169,7 @@ window.App.ready(function () {
     renderFacts();
     renderNextSlot();
     renderServices();
+    renderClub();
     renderTeam();
     renderReviews();
     renderHours();

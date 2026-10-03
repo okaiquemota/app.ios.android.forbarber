@@ -55,10 +55,13 @@ window.App.ready(function () {
                   <span><i class="bi bi-calendar3" aria-hidden="true"></i>${U.fmtDateHuman(a.date)}, ${a.start} às ${endOf(a)}</span>
                   <span><i class="bi bi-person" aria-hidden="true"></i>${b.name}</span>
                   <span><i class="bi bi-cash" aria-hidden="true"></i>${U.money(a.total)}</span>
+                  ${a.subscriptionId ? html`<span class="club-tag"><i class="bi bi-stars"></i>Clube</span>` : ''}
+                  ${a.depositStatus ? html`<span class="deposit-tag ${a.depositStatus}"><i class="bi ${a.depositStatus === 'pago' ? 'bi-check2' : 'bi-hourglass-split'}"></i>Sinal ${a.depositStatus === 'pago' ? 'pago' : `pendente · ${U.money(a.depositAmount)}`}</span>` : ''}
                 </div>
                 ${can ? '' : html`<span class="text-xs subtle">Cancelamento online até ${limit}h antes. Para mudar agora, fale no WhatsApp.</span>`}
               </div>
               <div class="appt-actions">
+                ${a.depositStatus === 'pendente' ? html`<button type="button" class="btn btn-primary btn-sm" data-pay="${a.id}"><i class="bi bi-qr-code"></i>Pagar sinal</button>` : ''}
                 <button type="button" class="btn btn-ghost btn-sm" data-ics="${a.id}"><i class="bi bi-calendar-plus"></i>Salvar</button>
                 ${can
                   ? html`<a class="btn btn-outline btn-sm" href="agendar.html?remarcar=${a.id}"><i class="bi bi-arrow-repeat"></i>Remarcar</a>
@@ -69,6 +72,20 @@ window.App.ready(function () {
         })}</div>`
       : UI.empty('bi-calendar-plus', 'Nenhum horário marcado', 'Deixe o próximo corte agendado e garanta o horário que você prefere.',
           html`<a class="btn btn-primary" href="agendar.html">Agendar agora</a>`);
+    const waits = App.waitlist.open().filter((w) => w.clientId === userId);
+    if (waits.length) {
+      $('#panel-agendamentos').insertAdjacentHTML('beforeend', html`
+        <div class="stack-sm waitlist-mine">
+          <h3 class="group-label">Lista de espera</h3>
+          ${waits.map((w) => html`
+            <div class="history-row">
+              <div class="grow"><strong>${U.fmtDateLong(w.date)} · ${App.waitlist.PERIODS[w.period].label}</strong>
+                <span class="when">${(w.serviceIds || []).map((id) => (db.service(id) || {}).name).filter(Boolean).join(' + ') || 'Serviço a combinar'}${w.barberId ? ` · ${(db.barber(w.barberId) || {}).name}` : ''}</span></div>
+              <span class="badge ${w.status === 'avisado' ? 'badge-primary' : 'badge-neutral'}">${w.status === 'avisado' ? 'Barbearia te chamou' : 'Aguardando vaga'}</span>
+              <button type="button" class="btn btn-ghost btn-xs" data-leave="${w.id}"><i class="bi bi-x-lg"></i>Sair da lista</button>
+            </div>`)}
+        </div>`.toString());
+    }
   }
 
   /* ---------- Histórico ---------- */
@@ -97,6 +114,35 @@ window.App.ready(function () {
       : UI.empty('bi-clock-history', 'Seu histórico aparece aqui', 'Depois do primeiro atendimento você vê todos os cortes e pode avaliar cada um.');
   }
 
+  /* ---------- Clube de assinatura ---------- */
+  function clubCard() {
+    const s = db.settings();
+    const sub = App.club.subscriptionOf(userId);
+    const plans = App.club.plans({ active: true });
+    if (!sub) {
+      return plans.length
+        ? html`<section class="card card-pad stack-sm"><h2 class="summary-title"><i class="bi bi-stars"></i> Clube ${s.name}</h2>
+            <p class="muted text-sm">Pague por mês e corte quantas vezes o plano permitir, a partir de ${U.money(Math.min(...plans.map((x) => x.price)))}.</p>
+            <a class="btn btn-outline btn-block" href="index.html#clube">Ver planos</a></section>`
+        : '';
+    }
+    const plan = App.club.plan(sub.planId) || { name: 'Clube', usesPerPeriod: 0, price: 0 };
+    const st = App.club.state(sub);
+    const used = App.club.usage(sub);
+    const n = plan.usesPerPeriod || 0;
+    const msg = `Olá! Quero renovar meu ${plan.name} (${U.money(plan.price)}).`;
+    return html`
+      <section class="club-card" aria-label="Seu plano do clube">
+        <div class="spread"><strong><i class="bi bi-stars"></i> ${plan.name}</strong>
+          <span class="badge ${st === 'ativa' ? 'badge-concluido' : 'badge-warning'}">${st === 'ativa' ? 'Ativo' : st === 'vencida' ? 'Vencido' : 'Pausado'}</span></div>
+        ${st === 'ativa'
+          ? html`<div class="muted text-sm">${n ? `${used} de ${n} visitas usadas` : `${used} visitas neste mês`} · renova em ${U.fmtDateShort(U.addDays(sub.periodEnd, 1))}</div>
+              ${n && n <= 12 ? html`<div class="uses" aria-hidden="true">${Array.from({ length: n }, (_, i) => html`<span class="${i < used ? 'on' : ''}"></span>`)}</div>` : ''}`
+          : html`<div class="muted text-sm">Venceu em ${U.fmtDate(sub.periodEnd)}. Renove para voltar a usar.</div>
+              <a class="btn btn-whatsapp btn-sm" href="${U.waLink(s.whatsapp, msg)}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i>Renovar</a>`}
+      </section>`;
+  }
+
   /* ---------- Lateral: fidelidade e ajuda ---------- */
   function renderSide() {
     const s = db.settings();
@@ -108,6 +154,7 @@ window.App.ready(function () {
     const favId = Object.entries(stats.barbers).sort((a, b) => b[1] - a[1])[0];
     const fav = favId && db.barber(favId[0]);
     $('#account-side').innerHTML = html`
+      ${clubCard()}
       <section class="loyalty" aria-labelledby="loyalty-title">
         <div class="spread">
           <h2 class="summary-title" id="loyalty-title">Cartão fidelidade</h2>
@@ -270,6 +317,25 @@ window.App.ready(function () {
   }
 
   document.addEventListener('click', async (e) => {
+    const payBtn = e.target.closest('[data-pay]');
+    if (payBtn) {
+      const a = db.get('appointments', payBtn.dataset.pay);
+      if (!a) return;
+      const m = UI.modal({ title: 'Pagar o sinal', body: UI.pixBox(a), footer: html`<button type="button" class="btn btn-primary" data-close>Pronto</button>` });
+      UI.renderQRs(m.body);
+      return;
+    }
+    const leaveBtn = e.target.closest('[data-leave]');
+    if (leaveBtn) {
+      try {
+        await App.waitlist.leave(leaveBtn.dataset.leave);
+        UI.toast('Você saiu da lista de espera.', 'info');
+        renderAll();
+      } catch (err) {
+        UI.toast(err.message, 'error');
+      }
+      return;
+    }
     const cancelBtn = e.target.closest('[data-cancel]');
     if (cancelBtn) {
       const a = db.get('appointments', cancelBtn.dataset.cancel);

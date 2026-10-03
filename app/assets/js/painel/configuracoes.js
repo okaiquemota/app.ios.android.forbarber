@@ -110,6 +110,22 @@ window.App.ready(function () {
           <div class="full"><button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i>Salvar regras</button></div>
         </form>`)}
 
+      ${section('s-sinal', 'bi-qr-code', 'Sinal por Pix', 'Peça um sinal no agendamento online para segurar o horário e diminuir as faltas. O valor é descontado no dia.', html`
+        <form id="f-deposit" class="form-grid" novalidate>
+          <div class="field full"><label class="switch"><input type="checkbox" name="depositEnabled" ${s.depositEnabled ? raw('checked') : ''}><span class="track"></span>Cobrar sinal no agendamento online</label></div>
+          <div class="field"><label class="label" for="st-dmode">Tipo de sinal</label>
+            <select class="select" id="st-dmode" name="depositMode"><option value="percentual" ${s.depositMode !== 'fixo' ? raw('selected') : ''}>Porcentagem do valor</option><option value="fixo" ${s.depositMode === 'fixo' ? raw('selected') : ''}>Valor fixo</option></select></div>
+          <div class="field"><label class="label" for="st-dval">${s.depositMode === 'fixo' ? 'Valor (R$)' : 'Porcentagem (%)'}</label>
+            <input class="input" id="st-dval" name="depositValue" type="number" min="1" step="0.01" value="${s.depositValue || 30}"></div>
+          <div class="field full"><label class="label" for="st-dscope">De quem cobrar</label>
+            <select class="select" id="st-dscope" name="depositScope"><option value="todos" ${s.depositScope !== 'novos_e_faltosos' ? raw('selected') : ''}>De todos os clientes</option><option value="novos_e_faltosos" ${s.depositScope === 'novos_e_faltosos' ? raw('selected') : ''}>Só de clientes novos ou que já faltaram</option></select></div>
+          <div class="field"><label class="label" for="st-pixkey">Chave Pix</label><input class="input" id="st-pixkey" name="pixKey" value="${s.pixKey || ''}" placeholder="CNPJ, e-mail, celular ou chave aleatória"></div>
+          <div class="field"><label class="label" for="st-pixname">Nome do recebedor</label><input class="input" id="st-pixname" name="pixName" maxlength="25" value="${s.pixName || ''}" placeholder="${s.name}"></div>
+          <div class="field"><label class="label" for="st-pixcity">Cidade</label><input class="input" id="st-pixcity" name="pixCity" maxlength="15" value="${s.pixCity || ''}" placeholder="${(s.address && s.address.city) || ''}"></div>
+          <p class="help full">Clientes do clube não pagam sinal nos serviços do plano. A confirmação do Pix é feita por você em cada agendamento ("Sinal recebido").</p>
+          <div class="full"><button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i>Salvar sinal</button></div>
+        </form>`)}
+
       ${db.isCloud() ? section('s-dados', 'bi-database', 'Seus dados', 'Tudo fica salvo na nuvem e aparece em qualquer aparelho em que a equipe entrar.', html`
         <div class="stack">
           <div class="cluster"><button type="button" class="btn btn-outline btn-sm" id="export-json"><i class="bi bi-download"></i>Baixar uma cópia (JSON)</button></div>
@@ -162,6 +178,14 @@ window.App.ready(function () {
         hours[d] = { closed: !open, open: from || hours[d].open, close: to || hours[d].close };
       }
       save({ hours }, 'Horários salvos. O agendamento online já usa os novos horários.');
+    } else if (form.id === 'f-deposit') {
+      const d = UI.formData(form);
+      if (form.elements.depositEnabled.checked && !d.pixKey) return UI.setError(form.elements.pixKey, 'Informe a chave Pix para cobrar o sinal.');
+      save({
+        depositEnabled: form.elements.depositEnabled.checked, depositMode: d.depositMode, depositValue: Number(d.depositValue) || 0,
+        depositScope: d.depositScope, pixKey: d.pixKey || '', pixName: d.pixName || '', pixCity: d.pixCity || '',
+      }, form.elements.depositEnabled.checked ? 'Sinal por Pix ligado no agendamento online.' : 'Configuração do sinal salva.');
+      render();
     } else if (form.id === 'f-rules') {
       const d = UI.formData(form);
       save({

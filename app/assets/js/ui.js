@@ -343,7 +343,73 @@
   }
   setTimeout(showFlash, 50);
 
+  /* ---------- Pix do sinal (QR + copia e cola) ---------- */
+  let qrLib = null;
+  function loadQR() {
+    if (window.qrcode) return Promise.resolve();
+    if (!qrLib) {
+      qrLib = new Promise((resolve, reject) => {
+        const sc = document.createElement('script');
+        sc.src = `${(window.FORBARBER && window.FORBARBER.appRoot) || ''}assets/vendor/qrcode/qrcode.js`;
+        sc.onload = resolve;
+        sc.onerror = reject;
+        document.head.appendChild(sc);
+      });
+    }
+    return qrLib;
+  }
+  /** Desenha os QR Codes pendentes da página ([data-qr]) */
+  function renderQRs(root = document) {
+    const els = $$('[data-qr]:not([data-qr-done])', root);
+    if (!els.length) return;
+    loadQR().then(() => {
+      els.forEach((el) => {
+        const q = window.qrcode(0, 'M');
+        q.addData(el.dataset.qr);
+        q.make();
+        el.innerHTML = q.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+        el.dataset.qrDone = '1';
+      });
+    }).catch(() => { $$('[data-qr]', root).forEach((el) => { el.hidden = true; }); });
+  }
+  function pixPayloadFor(a) {
+    const s = App.db.settings();
+    return App.booking.pixPayload({
+      key: s.pixKey,
+      name: s.pixName || s.name,
+      city: s.pixCity || (s.address && s.address.city) || 'Brasil',
+      amount: a.depositAmount,
+      txid: `FB${String(a.id).replace(/[^A-Za-z0-9]/g, '').slice(-20)}`,
+    });
+  }
+  /** Caixa com QR e código copia e cola do sinal de um agendamento */
+  function pixBox(a) {
+    const s = App.db.settings();
+    const payload = pixPayloadFor(a);
+    const msg = `Olá! Paguei o sinal de ${U.money(a.depositAmount)} do meu horário de ${U.fmtDateLong(a.date)} às ${a.start}. Segue o comprovante.`;
+    return html`
+      <div class="pix-box">
+        <div class="pix-qr" data-qr="${payload}" role="img" aria-label="QR Code do Pix"></div>
+        <div class="pix-body">
+          <strong>Sinal de ${U.money(a.depositAmount)} por Pix</strong>
+          <p class="text-sm muted">Abra o app do seu banco em Pix, leia o QR Code ou use o copia e cola. O valor é descontado no dia do atendimento.</p>
+          <div class="pix-code">
+            <input class="input input-sm" readonly value="${payload}" aria-label="Código Pix copia e cola">
+            <button type="button" class="btn btn-outline btn-sm" data-copy-pix><i class="bi bi-copy"></i>Copiar</button>
+          </div>
+          ${s.whatsapp ? html`<a class="btn btn-whatsapp btn-sm" href="${U.waLink(s.whatsapp, msg)}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i>Enviar comprovante</a>` : ''}
+        </div>
+      </div>`;
+  }
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-copy-pix]');
+    if (!btn) return;
+    const input = btn.parentElement.querySelector('input');
+    toast((await U.copyText(input.value)) ? 'Código Pix copiado.' : 'Selecione o código e copie.', 'info');
+  });
+
   App.ui = {
+    pixBox, renderQRs,
     toast, modal, confirm, tabs, closeDropdowns, flash,
     formData, validate, rules, setError, clearErrors, maskPhone, busy,
     statusBadge, avatar, stars, empty,

@@ -34,7 +34,28 @@ window.App.ready(function () {
   /* ---------- Cálculos ---------- */
   const selectedServices = () => state.services.map((id) => db.service(id)).filter((s) => s && s.active);
   const duration = () => U.sum(selectedServices(), (s) => s.duration);
-  const total = () => U.sum(selectedServices(), (s) => s.price);
+  /** Clube: o que o plano do cliente logado cobre nesta escolha */
+  const coverageNow = () => {
+    const u = auth.current();
+    if (!u || auth.isStaff(u)) return null;
+    const c = App.club.coverage({ clientId: u.id, serviceIds: state.services, date: state.date || U.today(), ignoreId: state.reschedule });
+    return c.applies ? c : null;
+  };
+  const clubOf = () => {
+    const u = auth.current();
+    if (!u || auth.isStaff(u)) return null;
+    const sub = App.club.subscriptionOf(u.id);
+    return sub && App.club.state(sub) === 'ativa' ? { sub, plan: App.club.plan(sub.planId), left: App.club.usesLeft(sub, state.reschedule) } : null;
+  };
+  const listTotal = () => U.sum(selectedServices(), (s) => s.price);
+  const total = () => App.club.price(selectedServices(), coverageNow()).total;
+  const depositNow = () => {
+    const u = auth.current();
+    if (!u || auth.isStaff(u)) return 0;
+    const old = state.reschedule && db.get('appointments', state.reschedule);
+    if (old && old.depositStatus === 'pago') return 0;
+    return App.deposit.amountFor({ clientId: u.id, total: total() });
+  };
   const endTime = () => (state.time ? U.fromMin(U.toMin(state.time) + duration()) : '');
   const barberLabel = () => (state.barberId === 'any' ? 'Primeiro disponível' : (db.barber(state.barberId) || {}).name || '');
   const slotList = (date) =>
@@ -158,17 +179,68 @@ window.App.ready(function () {
       const sel = $('.day[aria-pressed="true"]');
       if (sel) sel.scrollIntoView({ block: 'nearest', inline: 'center' });
     } else panel.innerHTML = panelConfirm();
+    UI.renderQRs(panel);
+  }
+
+  /* ---------- Lista de espera ---------- */
+  function openWaitlist() {
+    const user = auth.current();
+    if (!user) {
+      saveDraft();
+      UI.flash('Entre na sua conta para entrar na lista de espera.', 'info');
+      location.href = `login.html?next=${encodeURIComponent('agendar.html?retomar=1')}`;
+      return;
+    }
+    if (auth.isStaff(user)) return UI.toast('A lista de espera é para clientes. No painel, use a agenda.', 'info');
+    const P = App.waitlist.PERIODS;
+    const date = state.date || U.today();
+    const m = UI.modal({
+      title: 'Lista de espera',
+      size: 'sm',
+      body: html`
+        <p class="muted">Se vagar um horário que sirva, a barbearia te chama no WhatsApp.</p>
+        <form id="wl-form" class="stack" novalidate>
+          <div class="field"><label class="label" for="wl-date">Dia</label>
+            <input class="input" type="date" id="wl-date" name="date" value="${date}" min="${U.today()}" max="${U.addDays(U.today(), Number(db.settings().bookingWindow) || 30)}" required></div>
+          <div class="field"><label class="label" for="wl-period">Período</label>
+            <select class="select" id="wl-period" name="period">${Object.entries(P).map(([k, v]) => html`<option value="${k}">${v.label}</option>`)}</select></div>
+          <div class="field"><label class="label" for="wl-notes">Recado <span class="opt">(opcional)</span></label>
+            <input class="input" id="wl-notes" name="notes" maxlength="200" placeholder="Ex.: saio do trabalho às 17h"></div>
+          <p class="text-sm subtle">${selectedServices().length ? `Serviços: ${selectedServices().map((x) => x.name).join(' + ')}` : 'Serviço a combinar'} · ${state.barberId && state.barberId !== 'any' ? barberLabel() : 'qualquer profissional'}</p>
+        </form>`,
+      footer: html`<button type="button" class="btn btn-ghost" data-close>Voltar</button><button type="button" class="btn btn-primary" data-save><i class="bi bi-hourglass-split"></i>Entrar na lista</button>`,
+    });
+    m.el.querySelector('[data-save]').addEventListener('click', async (e) => {
+      const form = $('#wl-form', m.body);
+      const data = UI.validate(form, { date: (v) => (v && v >= U.today() ? null : 'Escolha um dia a partir de hoje.') });
+      if (!data) return;
+      UI.busy(e.currentTarget, true);
+      try {
+        await App.waitlist.join({
+          clientId: user.id, date: data.date, period: data.period, serviceIds: state.services,
+          barberId: state.barberId && state.barberId !== 'any' ? state.barberId : null, notes: data.notes,
+        });
+        m.close();
+        UI.toast('Pronto! Você está na lista de espera. Acompanhe em Minha conta.');
+      } catch (err) {
+        UI.busy(e.currentTarget, false);
+        UI.toast(err.message, 'error');
+      }
+    });
   }
 
   function panelServices() {
     const services = db.services({ active: true });
     const cats = db.categories({ active: true });
+    const club = clubOf();
+    const inPlan = (id) => club && club.left > 0 && (club.plan.serviceIds || []).includes(id);
     return html`
       ${state.reschedule ? html`<div class="notice"><i class="bi bi-arrow-repeat"></i><div><strong>Remarcando seu horário.</strong> Escolha o novo dia e horário; o anterior é cancelado quando você confirmar.</div></div>` : ''}
       <div class="stack-sm">
         <h2 class="wizard-title">Quais serviços?</h2>
         <p class="muted">Pode escolher mais de um: a duração e o valor somam automaticamente.</p>
       </div>
+      ${club ? html`<div class="notice"><i class="bi bi-stars"></i><div><strong>Você é do ${club.plan.name}.</strong> ${club.left === Infinity ? 'Visitas ilimitadas neste mês.' : club.left > 0 ? `Ainda ${club.left === 1 ? 'resta 1 visita' : `restam ${club.left} visitas`} até ${U.fmtDateShort(club.sub.periodEnd)}.` : `As visitas do plano acabaram neste mês (renova em ${U.fmtDateShort(U.addDays(club.sub.periodEnd, 1))}).`}</div></div>` : ''}
       ${cats.map((c) => html`
         <div class="stack-sm">
           <h3 class="group-label">${c}</h3>
@@ -178,7 +250,7 @@ window.App.ready(function () {
                 <input type="checkbox" name="svc" value="${s.id}" ${state.services.includes(s.id) ? raw('checked') : ''}>
                 <span class="tick"><i class="bi bi-check-lg"></i></span>
                 <span class="opt-body"><span class="opt-title">${s.name}</span><span class="opt-sub">${s.description}</span></span>
-                <span class="opt-end"><span class="opt-price">${U.money(s.price)}</span><span class="opt-meta">${U.fmtDuration(s.duration)}</span></span>
+                <span class="opt-end">${inPlan(s.id) ? html`<span class="club-tag"><i class="bi bi-stars"></i>No plano</span>` : html`<span class="opt-price">${U.money(s.price)}</span>`}<span class="opt-meta">${U.fmtDuration(s.duration)}</span></span>
               </label>`)}
           </div>
         </div>`)}
@@ -265,10 +337,15 @@ window.App.ready(function () {
         ${state.date ? html`<h3 class="group-label">${U.fmtDateLong(state.date)}</h3>` : ''}
         ${slotsHTML()}
       </div>
+      <div class="waitlist-cta">
+        <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+        <div class="grow"><strong>Nenhum horário serve?</strong><span class="text-sm muted">Entre na lista de espera: se vagar um horário, a barbearia te chama.</span></div>
+        <button type="button" class="btn btn-outline btn-sm" data-waitlist>Entrar na lista</button>
+      </div>
       ${navButtons()}`;
   }
 
-  const ticketHTML = ({ date, time, end, services, barberName, price, dur }) => {
+  const ticketHTML = ({ date, time, end, services, barberName, price, dur, clubName, dep }) => {
     const b = UI.bindings(db.settings());
     return html`
       <div class="ticket">
@@ -284,7 +361,8 @@ window.App.ready(function () {
           <div><span class="k">Serviços</span>${services.join(' + ')}</div>
           <div><span class="k">Profissional</span>${barberName}</div>
           <div><span class="k">Duração</span>${U.fmtDuration(dur)} (até ${end})</div>
-          <div><span class="k">Valor</span>${U.money(price)} <span class="text-xs subtle">· pague no local</span></div>
+          <div><span class="k">Valor</span>${U.money(price)} ${clubName ? html`<span class="club-tag"><i class="bi bi-stars"></i>${clubName}</span>` : ''}
+            <span class="text-xs subtle">· ${dep ? `sinal de ${U.money(dep)} por Pix, o resto no local` : 'pague no local'}</span></div>
         </div>
         <div class="text-sm muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> ${b.fullAddress}</div>
       </div>`;
@@ -296,6 +374,7 @@ window.App.ready(function () {
     const ticket = ticketHTML({
       date: state.date, time: state.time, end: endTime(), services: selectedServices().map((x) => x.name),
       barberName: barberLabel(), price: total(), dur: duration(),
+      clubName: (coverageNow() || {}).plan ? coverageNow().plan.name : '', dep: depositNow(),
     });
     const head = html`<div class="stack-sm"><h2 class="wizard-title">${state.reschedule ? 'Confirme a remarcação' : 'Confira e confirme'}</h2></div>`;
     const old = state.reschedule && db.get('appointments', state.reschedule);
@@ -320,7 +399,9 @@ window.App.ready(function () {
         </div>
         ${navButtons()}`;
     }
+    const dep = depositNow();
     return html`${head}${ticket}
+      ${dep ? html`<div class="notice warn"><i class="bi bi-qr-code"></i><div><strong>Esta barbearia pede um sinal de ${U.money(dep)} por Pix</strong> para garantir o horário. Depois de confirmar, mostramos o QR Code; o valor é descontado no dia.</div></div>` : ''}
       ${old ? html`<div class="notice"><i class="bi bi-arrow-repeat"></i><div>O horário anterior (${U.fmtDateHuman(old.date).toLowerCase()} às ${old.start}) será cancelado automaticamente.</div></div>` : ''}
       <div class="card card-pad stack">
         <div class="cluster">
@@ -353,7 +434,8 @@ window.App.ready(function () {
           <h2 class="wizard-title">${state.reschedule ? 'Horário remarcado!' : 'Horário confirmado!'}</h2>
           <p class="muted">Te esperamos ${U.fmtDateLong(a.date)}, às ${a.start}, com ${b.name}. Chegue 5 minutinhos antes.</p>
         </div>
-        ${ticketHTML({ date: a.date, time: a.start, end, services: a.services.map((x) => x.name), barberName: b.name, price: a.total, dur: a.duration })}
+        ${ticketHTML({ date: a.date, time: a.start, end, services: a.services.map((x) => x.name), barberName: b.name, price: a.total, dur: a.duration, clubName: a.subscriptionId ? ((App.club.plan((db.get('subscriptions', a.subscriptionId) || {}).planId) || {}).name || 'Clube') : '', dep: a.depositStatus === 'pendente' ? a.depositAmount : 0 })}
+        ${a.depositStatus === 'pendente' ? UI.pixBox(a) : ''}
         <div class="cluster">
           <button type="button" class="btn btn-primary" data-ics><i class="bi bi-calendar-plus"></i>Salvar na agenda do celular</button>
           <a class="btn btn-whatsapp" href="${U.waLink(s.whatsapp, msg)}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i>Avisar no WhatsApp</a>
@@ -384,6 +466,7 @@ window.App.ready(function () {
           ${row('bi-calendar3', 'Data', date && state.step >= 3 ? U.fmtDateLong(date) : '', 'A escolher')}
           ${row('bi-clock', 'Horário', time ? `${time} às ${end}` : '', 'A escolher')}
         </div>
+        ${!a && coverageNow() ? html`<div class="summary-club"><span class="club-tag"><i class="bi bi-stars"></i>${coverageNow().plan.name}</span><span class="text-sm subtle">De <s>${U.money(listTotal())}</s></span></div>` : ''}
         <div class="summary-total"><span class="muted">Total${dur ? ` · ${U.fmtDuration(dur)}` : ''}</span><strong>${U.money(price)}</strong></div>
       </div>
       <div class="notice"><i class="bi bi-shield-check" aria-hidden="true"></i><div>Pagamento no local: Pix, cartão ou dinheiro. Cancelamento grátis até ${db.settings().cancelLimit}h antes.</div></div>`;
@@ -517,6 +600,7 @@ window.App.ready(function () {
     const confirmBtn = t.closest('[data-confirm]');
     if (confirmBtn) return confirmBooking(confirmBtn);
     if (t.closest('[data-ics]')) return downloadICS();
+    if (t.closest('[data-waitlist]')) return openWaitlist();
     if (t.closest('[data-switch-account]')) {
       saveDraft();
       auth.logout().then(() => (location.href = `login.html?next=${encodeURIComponent(RESUME_URL)}`));

@@ -12,7 +12,7 @@ window.App.ready(function () {
 
   const PERIODS = [['hoje', 'Hoje'], ['amanha', 'Amanhã'], ['prox7', 'Próx. 7 dias'], ['30d', 'Últimos 30'], ['mes', 'Este mês'], ['todos', 'Tudo']];
   const state = {
-    period: U.qs('status') === 'pendentes' ? 'todos' : 'prox7',
+    period: U.qs('status') === 'pendentes' ? 'todos' : U.qs('status') === 'sinal' ? 'prox7' : 'prox7',
     status: U.qs('status') || '',
     barber: P.scopeBarberId || '',
     q: '',
@@ -31,6 +31,8 @@ window.App.ready(function () {
     const q = U.normalize(state.q);
     let list = db.appointments({ from: p.from, to: p.to, barberId: state.barber || undefined });
     if (state.status === 'pendentes') list = list.filter((a) => P.apptState(a) === 'late');
+    else if (state.status === 'sinal') list = list.filter((a) => a.depositStatus === 'pendente' && a.status === 'confirmado');
+    else if (state.status === 'clube') list = list.filter((a) => a.subscriptionId);
     else if (state.status) list = list.filter((a) => a.status === state.status);
     if (q) list = list.filter((a) => U.normalize(`${P.clientName(a.clientId)} ${P.servicesText(a)}`).includes(q));
     list.sort(db.byDateTime);
@@ -65,7 +67,7 @@ window.App.ready(function () {
             <td><div class="cell-main">${UI.avatar(P.clientName(a.clientId), { size: 'sm' })}<div class="grow"><strong>${P.clientName(a.clientId)}</strong><span>${(db.user(a.clientId) || {}).phone || ''}</span></div></div></td>
             <td class="hide-md services-cell">${P.servicesText(a)}</td>
             <td class="hide-md">${b ? html`<span class="cluster-sm"><span class="dot" style="background:${b.color}"></span>${U.firstName(b.name)}</span>` : '—'}</td>
-            <td class="num">${U.money(a.total)}</td>
+            <td class="num">${U.money(a.total)}${a.subscriptionId ? html`<br><span class="club-tag"><i class="bi bi-stars"></i>Clube</span>` : ''}${a.depositStatus ? html`<br><span class="deposit-tag ${a.depositStatus}">Sinal ${a.depositStatus}</span>` : ''}</td>
             <td>${late ? html`<span class="badge badge-warning"><i class="bi bi-hourglass-split"></i>Concluir</span>` : UI.statusBadge(a.status)}</td>
             <td><div class="actions">${a.status === 'confirmado' ? html`<button type="button" class="btn btn-success btn-icon btn-sm" data-conclude="${a.id}" aria-label="Concluir" title="Concluir"><i class="bi bi-check2"></i></button>` : ''}</div></td>
           </tr>`;

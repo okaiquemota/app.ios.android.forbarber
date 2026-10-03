@@ -18,10 +18,12 @@ window.App.ready(function () {
     { group: 'Visão geral', items: [
       { id: 'dashboard', href: 'index.html', icon: 'bi-speedometer2', label: 'Painel' },
       { id: 'agenda', href: 'agenda.html', icon: 'bi-calendar3', label: 'Agenda' },
+      { id: 'espera', href: 'espera.html', icon: 'bi-hourglass-split', label: 'Lista de espera', count: () => App.waitlist.open().filter((w) => w.status === 'aguardando').length },
     ] },
     { group: 'Gestão', items: [
       { id: 'agendamentos', href: 'agendamentos.html', icon: 'bi-list-check', label: 'Agendamentos' },
       { id: 'clientes', href: 'clientes.html', icon: 'bi-people', label: 'Clientes' },
+      { id: 'clube', href: 'clube.html', icon: 'bi-stars', label: 'Clube', admin: true },
       { id: 'servicos', href: 'servicos.html', icon: 'bi-scissors', label: 'Serviços', admin: true },
       { id: 'equipe', href: 'equipe.html', icon: 'bi-person-badge', label: 'Equipe', admin: true },
     ] },
@@ -145,6 +147,15 @@ window.App.ready(function () {
       const unread = db.unreadMessages();
       if (unread) items.push({ icon: 'bi-chat-left-text', text: `${unread} ${unread === 1 ? 'mensagem nova' : 'mensagens novas'}`, sub: 'Formulário de contato do site', href: 'mensagens.html' });
     }
+    // Lista de espera: vagou horário que serve para alguém
+    const waitHits = App.waitlist.open().filter((w) => w.status === 'aguardando' && w.date <= U.addDays(U.today(), 2) && App.waitlist.freeSlots(w).length);
+    if (waitHits.length) items.push({ icon: 'bi-hourglass-split', text: `${waitHits.length} ${waitHits.length === 1 ? 'pessoa da lista de espera tem' : 'pessoas da lista de espera têm'} vaga`, sub: 'Avise pelo WhatsApp', href: 'espera.html' });
+    const depPend = db.appointments({ status: 'confirmado', from: U.today(), to: U.addDays(U.today(), 2), barberId: scopeBarberId || undefined }).filter((a) => a.depositStatus === 'pendente');
+    if (depPend.length) items.push({ icon: 'bi-qr-code', text: `${depPend.length} ${depPend.length === 1 ? 'sinal pendente' : 'sinais pendentes'}`, sub: 'Confira o Pix e marque como recebido', href: 'agendamentos.html?status=sinal' });
+    if (isAdmin) {
+      const overdue = db.list('subscriptions').filter((x) => App.club.state(x) === 'vencida');
+      if (overdue.length) items.push({ icon: 'bi-stars', text: `${overdue.length} ${overdue.length === 1 ? 'assinatura vencida' : 'assinaturas vencidas'}`, sub: 'Clube: cobrar a renovação', href: 'clube.html?f=vencidas' });
+    }
     const late = pendingConclusion();
     if (late.length) {
       items.push({
@@ -219,7 +230,8 @@ window.App.ready(function () {
     const pay = a.paymentMethod && B.PAYMENTS[a.paymentMethod];
 
     const actions = {
-      confirmado: html`<button type="button" class="btn btn-ghost btn-sm" data-act="edit"><i class="bi bi-pencil"></i>Editar</button>
+      confirmado: html`${a.depositStatus === 'pendente' ? html`<button type="button" class="btn btn-outline btn-sm" data-act="deposit"><i class="bi bi-qr-code"></i>Sinal recebido</button>` : ''}
+        <button type="button" class="btn btn-ghost btn-sm" data-act="edit"><i class="bi bi-pencil"></i>Editar</button>
         <button type="button" class="btn btn-danger btn-sm" data-act="cancel"><i class="bi bi-x-lg"></i>Cancelar</button>
         <button type="button" class="btn btn-outline btn-sm" data-act="noshow"><i class="bi bi-person-x"></i>Faltou</button>
         <button type="button" class="btn btn-success btn-sm" data-act="conclude"><i class="bi bi-check2-circle"></i>Concluir</button>`,
@@ -251,7 +263,10 @@ window.App.ready(function () {
           <span class="label">Serviços</span>
           <ul class="detail-list" style="margin-top:.4rem">
             ${a.services.map((s) => html`<li><span>${s.name} <span class="subtle">· ${U.fmtDuration(s.duration)}</span></span><span class="num">${U.money(s.price)}</span></li>`)}
+            ${a.subscriptionId ? html`<li><span><span class="club-tag"><i class="bi bi-stars"></i>${clubPlanName(a)}</span> incluso</span><span class="num subtle">- ${U.money(a.clubValue || 0)}</span></li>` : ''}
             <li class="strong"><span>Total${pay ? html` · <i class="bi ${pay.icon}"></i> ${pay.label}` : ''}</span><span class="num">${U.money(a.total)}</span></li>
+            ${a.depositStatus ? html`<li><span><span class="deposit-tag ${a.depositStatus}"><i class="bi bi-qr-code"></i>Sinal ${a.depositStatus === 'pago' ? 'pago' : 'pendente'}</span></span><span class="num">${U.money(a.depositAmount)}</span></li>
+              ${a.status === 'confirmado' ? html`<li><span class="subtle">Falta pagar no atendimento</span><span class="num">${U.money(App.deposit.remaining(a))}</span></li>` : ''}` : ''}
           </ul>
         </div>
         ${a.notes ? html`<div><span class="label">Observações</span><p class="muted">${a.notes}</p></div>` : ''}
@@ -283,6 +298,10 @@ window.App.ready(function () {
       } else if (act === 'conclude') {
         m.close();
         openConclude(a);
+      } else if (act === 'deposit') {
+        db.update('appointments', a.id, { depositStatus: 'pago', depositPaidAt: U.nowISO() });
+        m.close();
+        UI.toast(`Sinal de ${U.money(a.depositAmount)} marcado como recebido.`);
       } else if (act === 'noshow') {
         db.update('appointments', a.id, { status: 'faltou', paymentMethod: null });
         m.close();
@@ -307,13 +326,19 @@ window.App.ready(function () {
     });
   }
 
+  const clubPlanName = (a) => ((App.club.plan((db.get('subscriptions', a.subscriptionId) || {}).planId) || {}).name || 'Clube');
+
   /* ---------- Modal: concluir com forma de pagamento ---------- */
   function openConclude(a) {
+    const paidDep = a.depositStatus === 'pago' ? a.depositAmount || 0 : 0;
     const m = UI.modal({
       title: 'Concluir atendimento',
       size: 'sm',
       body: html`
         <p class="muted">${clientName(a.clientId)} · ${servicesText(a)}</p>
+        ${a.subscriptionId ? html`<div class="notice"><i class="bi bi-stars"></i><div>Atendimento do <strong>${clubPlanName(a)}</strong>: os serviços do plano já estão pagos na mensalidade.</div></div>` : ''}
+        ${paidDep ? html`<div class="notice"><i class="bi bi-qr-code"></i><div>Sinal de <strong>${U.money(paidDep)}</strong> já pago por Pix. Cobre só o restante.</div></div>` : ''}
+        ${a.depositStatus === 'pendente' ? html`<div class="notice warn"><i class="bi bi-hourglass-split"></i><div>O sinal de ${U.money(a.depositAmount)} não foi marcado como pago. Se o cliente pagou, ajuste o valor abaixo.</div></div>` : ''}
         <fieldset class="field">
           <legend class="label">Forma de pagamento</legend>
           <div class="pay-options">
@@ -321,8 +346,8 @@ window.App.ready(function () {
           </div>
         </fieldset>
         <div class="field">
-          <label class="label" for="pay-total">Valor cobrado (R$)</label>
-          <input class="input" id="pay-total" type="number" inputmode="decimal" step="0.01" min="0" value="${a.total}">
+          <label class="label" for="pay-total">${paidDep ? 'Valor cobrado agora (R$)' : 'Valor cobrado (R$)'}</label>
+          <input class="input" id="pay-total" type="number" inputmode="decimal" step="0.01" min="0" value="${Math.max(0, Math.round((a.total - paidDep) * 100) / 100)}">
           <span class="help">Ajuste se houve desconto ou cortesia do cartão fidelidade.</span>
         </div>`,
       footer: html`<button type="button" class="btn btn-ghost" data-close>Voltar</button>
@@ -332,9 +357,9 @@ window.App.ready(function () {
       const method = m.body.querySelector('input[name="pay"]:checked').value;
       const total = Number(m.body.querySelector('#pay-total').value);
       if (!(total >= 0)) return UI.setError(m.body.querySelector('#pay-total'), 'Informe um valor válido.');
-      db.update('appointments', a.id, { status: 'concluido', paymentMethod: method, total: Math.round(total * 100) / 100 });
+      db.update('appointments', a.id, { status: 'concluido', paymentMethod: method, total: Math.round((total + paidDep) * 100) / 100 });
       m.close();
-      UI.toast(`Atendimento concluído · ${U.money(total)} no ${B.PAYMENTS[method].label.toLowerCase()}.`);
+      UI.toast(`Atendimento concluído · ${U.money(total)} no ${B.PAYMENTS[method].label.toLowerCase()}${paidDep ? ` + sinal de ${U.money(paidDep)}` : ''}.`);
     });
   }
 
@@ -435,14 +460,14 @@ window.App.ready(function () {
   }
 
   /* ---------- Modal: novo / editar agendamento ---------- */
-  function openAppointmentForm({ id, date, time, barberId, clientId } = {}) {
+  function openAppointmentForm({ id, date, time, barberId, clientId, serviceIds } = {}) {
     const editing = id ? db.get('appointments', id) : null;
     const barbers = db.barbers({ active: true });
     if (!barbers.length) return UI.toast('Cadastre um profissional em Equipe antes de agendar.', 'error');
     const state = {
       clientId: editing ? editing.clientId : clientId || null,
       newClient: false,
-      services: editing ? editing.services.map((s) => s.id) : [],
+      services: editing ? editing.services.map((s) => s.id) : serviceIds || [],
       barberId: editing ? editing.barberId : barberId || scopeBarberId || barbers[0].id,
       date: editing ? editing.date : date || U.today(),
       time: editing ? editing.start : time || '',
@@ -534,17 +559,20 @@ window.App.ready(function () {
       const svcs = selectedServices();
       const override = el('#a-override').checked;
       const t = override ? el('#a-custom').value : state.time;
-      const total = U.sum(svcs, (s) => s.price);
+      const cid = state.newClient ? null : state.clientId;
+      const cov = !editing && cid ? App.club.coverage({ clientId: cid, serviceIds: state.services, date: state.date }) : null;
+      const total = App.club.price(svcs, cov && cov.applies ? cov : null).total;
       const conflict = t && svcs.length ? B.conflict({ barberId: state.barberId, date: state.date, start: t, duration: duration(), ignoreId: editing && editing.id }) : null;
       el('#a-summary').innerHTML = html`<i class="bi ${conflict ? 'bi-exclamation-triangle' : 'bi-receipt'}" aria-hidden="true"></i>
         <div>${svcs.length
           ? html`<strong>${svcs.map((s) => s.name).join(' + ')}</strong> · ${U.fmtDuration(duration())} · ${U.money(total)}${t ? html` · ${U.fmtDateHuman(state.date)} das ${t} às ${U.fromMin(U.toMin(t) + duration())}` : ''}`
           : 'Escolha os serviços para ver duração e valor.'}
+          ${cov && cov.applies ? html`<br><span class="club-tag"><i class="bi bi-stars"></i>${cov.plan.name}</span> <span class="text-sm">${cov.coveredIds.length ? 'serviço do plano incluso' : 'sem visitas restantes no plano'}${cov.discountPct ? ` · ${cov.discountPct}% nos demais` : ''}${cov.plan.usesPerPeriod ? ` · ${cov.plan.usesPerPeriod - App.club.usage(cov.sub)} de ${cov.plan.usesPerPeriod} visitas restantes` : ''}</span>` : ''}
           ${conflict ? html`<br><span class="text-danger">Conflita com ${conflict.clientId ? `o horário de ${clientName(conflict.clientId)} (${conflict.start})` : `um bloqueio (${conflict.reason || 'agenda bloqueada'})`}.</span>` : ''}</div>`;
       el('#a-summary').classList.toggle('warn', !!conflict);
     }
 
-    clientPicker(el('#client-picker'), state, () => {});
+    clientPicker(el('#client-picker'), state, () => refreshSummary());
     body.addEventListener('change', (e) => {
       const t = e.target;
       if (t.name === 'svc') {

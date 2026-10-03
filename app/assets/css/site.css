@@ -1228,3 +1228,11 @@ a.member .member-role { font-size: 0.82rem; font-weight: 500; color: var(--text-
   .tabbar a.tab-book i { height: 30px; }
 }
 .account-layout > *, .account > * { min-width: 0; }
+
+/* Lista de espera e clube no agendamento */
+.waitlist-cta { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); border: 1px dashed var(--line-strong); border-radius: var(--radius); background: var(--surface); }
+.waitlist-cta > i { font-size: 1.3rem; color: var(--text-3); }
+.waitlist-cta .grow { display: flex; flex-direction: column; }
+@media (max-width: 520px) { .waitlist-cta { flex-wrap: wrap; } .waitlist-cta .btn { width: 100%; } }
+.summary-club { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: var(--sp-3); }
+.opt-end .club-tag { margin-bottom: 0.2rem; }

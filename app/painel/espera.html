@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Agendamentos · Grey Barber</title>
+  <title>Lista de espera · Grey Barber</title>
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#ffffff">
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
@@ -14,28 +14,17 @@
   <link rel="stylesheet" href="../assets/css/base.css">
   <link rel="stylesheet" href="../assets/css/painel.css">
 </head>
-<body class="painel" data-page="agendamentos" data-title="Agendamentos">
+<body class="painel" data-page="espera" data-title="Lista de espera">
   <div class="shell">
     <aside class="side" id="side" aria-label="Menu do painel"></aside>
     <div class="main">
       <header class="topbar" id="topbar"></header>
       <main class="content" id="conteudo">
         <div class="page-head">
-          <div><h1>Agendamentos</h1><p id="list-sub"></p></div>
-          <div class="page-actions"><button type="button" class="btn btn-outline btn-sm" id="export"><i class="bi bi-download"></i>Exportar CSV</button></div>
+          <div><h1>Lista de espera</h1><p>Clientes que querem um horário que estava cheio. Quando vagar, avise pelo WhatsApp.</p></div>
+          <div class="page-actions"><button type="button" class="btn btn-primary btn-sm" id="new-wait"><i class="bi bi-plus-lg"></i>Adicionar à lista</button></div>
         </div>
-        <div class="filters">
-          <div class="seg" id="period"></div>
-          <select class="select" id="f-status" aria-label="Situação">
-            <option value="">Todas as situações</option><option value="pendentes">Aguardando conclusão</option><option value="sinal">Sinal pendente</option><option value="clube">Clube de assinatura</option>
-            <option value="confirmado">Confirmados</option><option value="concluido">Concluídos</option>
-            <option value="cancelado">Cancelados</option><option value="faltou">Não compareceu</option>
-          </select>
-          <select class="select" id="f-barber" aria-label="Profissional"></select>
-          <div class="search"><i class="bi bi-search" aria-hidden="true"></i><input class="input" id="f-q" placeholder="Cliente ou serviço" aria-label="Buscar"></div>
-        </div>
-        <div class="result-line" id="totals"></div>
-        <section class="panel"><div class="panel-body flush" id="list"></div></section>
+        <div id="wait-list" class="stack"></div>
       </main>
     </div>
   </div>
@@ -51,6 +40,6 @@
   <script src="../assets/js/pwa.js"></script>
   <script src="../assets/js/native.js"></script>
   <script src="../assets/js/painel.js"></script>
-  <script src="../assets/js/painel/agendamentos.js"></script>
+  <script src="../assets/js/painel/espera.js"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Agendamentos · Grey Barber</title>
+  <title>Clube · Grey Barber</title>
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#ffffff">
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
@@ -14,28 +14,33 @@
   <link rel="stylesheet" href="../assets/css/base.css">
   <link rel="stylesheet" href="../assets/css/painel.css">
 </head>
-<body class="painel" data-page="agendamentos" data-title="Agendamentos">
+<body class="painel" data-page="clube" data-title="Clube">
   <div class="shell">
     <aside class="side" id="side" aria-label="Menu do painel"></aside>
     <div class="main">
       <header class="topbar" id="topbar"></header>
       <main class="content" id="conteudo">
         <div class="page-head">
-          <div><h1>Agendamentos</h1><p id="list-sub"></p></div>
-          <div class="page-actions"><button type="button" class="btn btn-outline btn-sm" id="export"><i class="bi bi-download"></i>Exportar CSV</button></div>
+          <div><h1>Clube de assinatura</h1><p>Planos mensais, assinantes e renovações.</p></div>
+          <div class="page-actions">
+            <button type="button" class="btn btn-outline btn-sm" id="new-plan"><i class="bi bi-plus-lg"></i>Novo plano</button>
+            <button type="button" class="btn btn-primary btn-sm" id="new-sub"><i class="bi bi-person-plus"></i>Novo assinante</button>
+          </div>
         </div>
-        <div class="filters">
-          <div class="seg" id="period"></div>
-          <select class="select" id="f-status" aria-label="Situação">
-            <option value="">Todas as situações</option><option value="pendentes">Aguardando conclusão</option><option value="sinal">Sinal pendente</option><option value="clube">Clube de assinatura</option>
-            <option value="confirmado">Confirmados</option><option value="concluido">Concluídos</option>
-            <option value="cancelado">Cancelados</option><option value="faltou">Não compareceu</option>
-          </select>
-          <select class="select" id="f-barber" aria-label="Profissional"></select>
-          <div class="search"><i class="bi bi-search" aria-hidden="true"></i><input class="input" id="f-q" placeholder="Cliente ou serviço" aria-label="Buscar"></div>
-        </div>
-        <div class="result-line" id="totals"></div>
-        <section class="panel"><div class="panel-body flush" id="list"></div></section>
+        <section class="kpis" id="club-kpis" aria-label="Indicadores do clube"></section>
+        <section class="panel" aria-labelledby="plans-title">
+          <div class="panel-head"><h2 class="panel-title" id="plans-title"><i class="bi bi-stars" aria-hidden="true"></i>Planos</h2><span class="panel-sub">Aparecem no site da barbearia na aba Clube</span></div>
+          <div class="panel-body"><div class="club-plans" id="plans"></div></div>
+        </section>
+        <section class="panel" aria-labelledby="subs-title">
+          <div class="panel-head">
+            <h2 class="panel-title" id="subs-title"><i class="bi bi-people" aria-hidden="true"></i>Assinantes</h2>
+            <div class="seg" id="sub-filter">
+              <button type="button" data-f="ativas" aria-pressed="true">Ativas</button><button type="button" data-f="vencidas" aria-pressed="false">Vencidas</button><button type="button" data-f="canceladas" aria-pressed="false">Canceladas</button><button type="button" data-f="todas" aria-pressed="false">Todas</button>
+            </div>
+          </div>
+          <div class="panel-body flush" id="subs"></div>
+        </section>
       </main>
     </div>
   </div>
@@ -51,6 +56,6 @@
   <script src="../assets/js/pwa.js"></script>
   <script src="../assets/js/native.js"></script>
   <script src="../assets/js/painel.js"></script>
-  <script src="../assets/js/painel/agendamentos.js"></script>
+  <script src="../assets/js/painel/clube.js"></script>
 </body>
 </html>
