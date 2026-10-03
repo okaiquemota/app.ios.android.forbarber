@@ -152,6 +152,42 @@ window.App.ready(function () {
       </div>`;
   }
 
+  /* ---------- Barra inferior no celular (Início, Agendar, Horários, Mais) ---------- */
+  function renderTabbar() {
+    const page = document.body.dataset.page;
+    let bar = document.getElementById('tabbar');
+    // No agendamento a barra de baixo é o resumo com "Continuar"
+    if (page === 'agendar') {
+      if (bar) bar.remove();
+      document.body.classList.remove('has-tabbar');
+      return;
+    }
+    if (!bar) {
+      bar = document.createElement('nav');
+      bar.id = 'tabbar';
+      bar.className = 'tabbar';
+      bar.setAttribute('aria-label', 'Navegação principal');
+      document.body.appendChild(bar);
+    }
+    document.body.classList.add('has-tabbar');
+    const user = auth.current();
+    const staff = user && auth.isStaff(user);
+    const third = staff
+      ? { href: 'painel/index.html', icon: 'bi-speedometer2', label: 'Painel', page: '' }
+      : { href: user ? 'minha-conta.html' : 'login.html?next=minha-conta.html', icon: 'bi-calendar-check', label: 'Horários', page: 'conta' };
+    const item = (i) => html`<a href="${i.href}" class="${i.cls || ''}" ${i.page && i.page === page ? raw('aria-current="page"') : ''}><i class="bi ${i.icon}" aria-hidden="true"></i><span>${i.label}</span></a>`;
+    bar.innerHTML = html`
+      ${item({ href: 'index.html', icon: 'bi-house', label: 'Início', page: 'home' })}
+      ${item({ href: 'agendar.html', icon: 'bi-plus-lg', label: 'Agendar', cls: 'tab-book' })}
+      ${item(third)}
+      <a href="#" data-tab-menu><i class="bi bi-list" aria-hidden="true"></i><span>Mais</span></a>`;
+  }
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('[data-tab-menu]')) return;
+    e.preventDefault();
+    setMenuOpen(document.getElementById('mobile-nav').hidden);
+  });
+
   function setMenuOpen(open) {
     const mobile = document.getElementById('mobile-nav');
     const toggle = document.querySelector('#site-header .menu-toggle');
@@ -257,6 +293,7 @@ window.App.ready(function () {
   function renderChrome() {
     renderExtras();
     renderHeader();
+    renderTabbar();
     renderFooter();
     UI.applyBranding();
   }

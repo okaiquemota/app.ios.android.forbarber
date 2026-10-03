@@ -299,9 +299,9 @@
   function applyBranding() {
     const s = App.db.settings();
     const root = document.documentElement;
-    const color = /^#[0-9a-f]{6}$/i.test(s.primaryColor || '') ? s.primaryColor : '#f39c12';
+    const color = /^#[0-9a-f]{6}$/i.test(s.primaryColor || '') ? s.primaryColor : '#111827';
     root.style.setProperty('--primary', color);
-    root.style.setProperty('--primary-ink', U.luminance(color) > 0.3 ? '#1a1206' : '#ffffff');
+    root.style.setProperty('--primary-ink', U.luminance(color) > 0.5 ? '#111827' : '#ffffff');
     root.dataset.font = s.fontStyle || 'classico';
 
     const b = bindings(s);

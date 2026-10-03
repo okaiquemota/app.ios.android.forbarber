@@ -1,37 +1,19 @@
 /* ==========================================================================
-   PRODUTO — identidade própria do ForBarber (página inicial, criar, entrar).
-   Não é a cara da MovCode nem a das barbearias: azul-marinho de navalha,
-   vermelho do poste de barbeiro e Archivo larga nos títulos.
-   Os componentes vêm de base.css; aqui só trocamos os tokens.
+   PRODUTO — telas do ForBarber (criar barbearia, entrar, início do app).
+   Mesmo visual claro do sistema, com o vermelho e o poste da marca.
    ========================================================================== */
 
 .p-body {
-  --bg: #0b1120;
-  --bg-raised: #0f1729;
-  --surface: #131d33;
-  --surface-2: #19253f;
-  --surface-3: #22314f;
-  --line: rgba(206, 220, 255, 0.1);
-  --line-strong: rgba(206, 220, 255, 0.2);
-  --text: #eef2f9;
-  --text-2: #aeb9cd;
-  --text-3: #7f8ba3;
   --primary: #e5484d;
   --primary-ink: #ffffff;
-  --primary-hover: #f05f63;
-  --primary-soft: rgba(229, 72, 77, 0.14);
-  --primary-line: rgba(229, 72, 77, 0.45);
-  --pole-blue: #4f7fe8;
-  --font-brand: 'Archivo', system-ui, sans-serif;
-  --font-heading: 'Archivo', system-ui, sans-serif;
-  --font-display: 'Archivo', system-ui, sans-serif;
-  --font-body: 'Archivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --header-h: 68px;
-  color-scheme: dark;
+  --primary-hover: #d93d42;
+  --primary-strong: #c22f34;
+  --primary-soft: #fdeced;
+  --primary-line: #f5b3b5;
+  --pole-blue: #3b6fe0;
+  --header-h: 64px;
 }
-.p-body .btn { letter-spacing: 0.04em; font-weight: 700; font-size: 0.92rem; }
-.p-body .eyebrow { letter-spacing: 0.14em; font-weight: 700; font-size: 0.78rem; }
-.p-body .label { font-weight: 700; letter-spacing: 0.08em; font-size: 0.75rem; }
+.p-body .btn { font-weight: 600; }
 
 /* ---------- Marca ---------- */
 .p-brand { display: inline-flex; align-items: center; gap: 0.6rem; color: var(--text); }
@@ -40,14 +22,14 @@
   width: 13px;
   height: 32px;
   border-radius: 7px;
-  box-shadow: 0 0 0 2px var(--text);
+  box-shadow: 0 0 0 2px #111827;
   background: repeating-linear-gradient(-45deg, var(--primary) 0 4px, #fff 4px 8px, var(--pole-blue) 8px 12px, #fff 12px 16px);
   background-size: 100% 22.6px;
   animation: p-pole 2.4s linear infinite;
 }
 @keyframes p-pole { to { background-position: 0 22.6px; } }
 @media (prefers-reduced-motion: reduce) { .p-brand-mark { animation: none; } }
-.p-brand-name { font-family: var(--font-brand); font-stretch: 125%; font-weight: 800; font-size: 1.3rem; line-height: 1; letter-spacing: -0.02em; }
+.p-brand-name { font-family: var(--font-brand); font-weight: 800; font-size: 1.25rem; line-height: 1; letter-spacing: -0.03em; }
 .p-brand-name span { font-weight: 400; color: var(--text-2); }
 
 /* ---------- Cabeçalho ---------- */
@@ -55,7 +37,7 @@
   position: sticky;
   top: 0;
   z-index: 30;
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
 }
@@ -69,7 +51,6 @@
 /* ---------- Títulos ---------- */
 .p-title {
   font-family: var(--font-display);
-  font-stretch: 125%;
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.02;
@@ -156,7 +137,7 @@
   .p-feature.is-phone { grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr); }
 }
 .p-feature-copy { display: flex; flex-direction: column; gap: var(--sp-4); }
-.p-feature-copy h3 { font-family: var(--font-display); font-stretch: 125%; font-size: clamp(1.5rem, 2.8vw, 1.95rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.08; }
+.p-feature-copy h3 { font-family: var(--font-display); font-size: clamp(1.5rem, 2.8vw, 1.95rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.08; }
 .p-feature-media .p-browser { width: 100%; }
 .p-feature-media .p-phone { position: static; width: min(300px, 78%); margin-inline: auto; }
 
@@ -204,15 +185,13 @@
   gap: var(--sp-5);
   padding: var(--sp-7);
   border-right: 1px solid var(--line);
-  background:
-    radial-gradient(120% 80% at 0% 100%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 60%),
-    var(--bg-raised);
+  background: var(--bg-raised);
 }
 @media (min-width: 1000px) { .p-auth-side { display: flex; } }
 .p-auth-main { display: flex; align-items: flex-start; justify-content: center; padding: var(--sp-6) var(--gutter) var(--sp-8); }
 @media (min-width: 1000px) { .p-auth-main { align-items: center; } }
 .p-card { width: min(480px, 100%); display: flex; flex-direction: column; gap: var(--sp-5); }
-.p-card h1 { font-family: var(--font-display); font-stretch: 125%; font-size: clamp(1.8rem, 4.6vw, 2.3rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; }
+.p-card h1 { font-family: var(--font-display); font-size: clamp(1.8rem, 4.6vw, 2.3rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; }
 .p-card form { display: flex; flex-direction: column; gap: var(--sp-4); }
 .p-alt { color: var(--text-2); text-align: center; }
 
@@ -234,7 +213,7 @@
 
 /* Endereço da barbearia: prefixo do site + nome */
 .slug-field { display: flex; align-items: stretch; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface-2); overflow: hidden; }
-.slug-field:hover { border-color: rgba(243, 222, 190, 0.3); }
+.slug-field:hover { border-color: #b9bfca; }
 .field.invalid .slug-field { border-color: var(--danger); }
 .slug-field:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
 .slug-prefix { display: block; flex: 0 1 auto; min-width: 3ch; align-self: center; padding: 0 0.15rem 0 0.8rem; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -262,6 +241,6 @@
 .p-shop > i { color: var(--primary); }
 
 /* Planos com a tipografia do produto */
-.p-body .plan-name { font-stretch: 125%; font-weight: 800; text-transform: none; letter-spacing: -0.02em; font-size: 1.35rem; }
+.p-body .plan-name { font-weight: 800; text-transform: none; letter-spacing: -0.02em; font-size: 1.35rem; }
 .p-body .plan-price strong { font-weight: 800; letter-spacing: -0.02em; }
 .p-body .plan-card.is-featured { border-color: rgba(229, 72, 77, 0.45); background: linear-gradient(180deg, rgba(229, 72, 77, 0.1), var(--surface) 60%); }

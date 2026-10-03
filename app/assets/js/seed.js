@@ -43,7 +43,7 @@
     bookingWindow: 30, // dias à frente liberados para agendamento
     cancelLimit: 2, // horas de antecedência para o cliente cancelar
     loyaltyTarget: 10, // atendimentos para ganhar um corte
-    primaryColor: '#f39c12',
+    primaryColor: '#111827',
     fontStyle: 'classico',
     logo: '',
     heroImage: '',

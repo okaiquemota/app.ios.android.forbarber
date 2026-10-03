@@ -360,7 +360,7 @@ language sql immutable as $$
     'bookingWindow', 30,
     'cancelLimit', 2,
     'loyaltyTarget', 10,
-    'primaryColor', '#f39c12',
+    'primaryColor', '#111827',
     'fontStyle', 'classico',
     'logo', '',
     'heroImage', '',

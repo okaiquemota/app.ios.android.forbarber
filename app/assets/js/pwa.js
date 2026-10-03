@@ -9,7 +9,7 @@
   'use strict';
   const App = window.App;
   const CFG = window.FORBARBER;
-  const BG = '#0d0c0a';
+  const BG = '#111827';
 
   // Dentro do app de iPhone/Android já é app: sem manifesto, cache nem botão de instalar
   if (CFG.native) {

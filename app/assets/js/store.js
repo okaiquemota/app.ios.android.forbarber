@@ -356,11 +356,11 @@
     const root = (window.FORBARBER && window.FORBARBER.appRoot) || '';
     const home = root.replace(/[^/]+\/?$/, '');
     document.body.innerHTML = `
-      <main style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#0d0c0a;color:#f3ede3;font-family:system-ui,sans-serif;text-align:center">
+      <main style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#f4f5f7;color:#111827;font-family:system-ui,sans-serif;text-align:center">
         <div style="max-width:420px;display:grid;gap:12px">
           <strong style="font-size:1.4rem">${notFound ? 'Barbearia não encontrada' : 'Não foi possível carregar'}</strong>
           <p style="color:#bfb5a6">${notFound ? 'Confira o endereço: ele deve ser igual ao que a barbearia divulgou.' : U.esc(err && err.message ? err.message : 'Tente de novo em instantes.')}</p>
-          <a href="${notFound ? home : location.href}" style="color:#f39c12;font-weight:600">${notFound ? 'Ir para o ForBarber' : 'Tentar de novo'}</a>
+          <a href="${notFound ? home : location.href}" style="color:#2563eb;font-weight:600">${notFound ? 'Ir para o ForBarber' : 'Tentar de novo'}</a>
         </div>
       </main>`;
   };

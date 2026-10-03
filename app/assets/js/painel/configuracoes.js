@@ -12,12 +12,11 @@ window.App.ready(function () {
   const UI = App.ui;
 
   const PRESETS = [
-    ['#f39c12', 'Dourado'], ['#d4a373', 'Cobre'], ['#c0392b', 'Vermelho barbeiro'], ['#2e86de', 'Azul'],
-    ['#27ae60', 'Verde'], ['#b8b8b8', 'Prata'], ['#e84393', 'Rosa'], ['#8e44ad', 'Roxo'],
+    ['#111827', 'Preto'], ['#2563eb', 'Azul'], ['#7c3aed', 'Roxo'], ['#16a34a', 'Verde'],
+    ['#dc2626', 'Vermelho'], ['#ea580c', 'Laranja'], ['#b7791f', 'Dourado'], ['#db2777', 'Rosa'],
   ];
   const FONTS = [
-    ['classico', 'Clássico', "'Rye', serif"],
-    ['moderno', 'Moderno', "'Barlow Condensed', sans-serif"],
+    ['classico', 'Padrão', "'Inter', sans-serif"],
     ['elegante', 'Elegante', "'Playfair Display', serif"],
   ];
 
@@ -60,7 +59,7 @@ window.App.ready(function () {
           <fieldset class="field"><legend class="label">Estilo dos títulos</legend>
             <div class="font-options">${FONTS.map(([k, label, family]) => html`
               <label class="opt"><input type="radio" name="font" value="${k}" ${s.fontStyle === k ? raw('checked') : ''}>
-                <span class="opt-body" style="display:block"><span class="font-sample" style="display:block;font-family:${family};${k === 'moderno' ? 'text-transform:uppercase' : ''}">${s.name}</span><span class="text-sm subtle">${label}</span></span></label>`)}
+                <span class="opt-body" style="display:block"><span class="font-sample" style="display:block;font-family:${family};">${s.name}</span><span class="text-sm subtle">${label}</span></span></label>`)}
             </div></fieldset>
           <div class="grid-2">
             <div class="field"><span class="label">Logo</span>

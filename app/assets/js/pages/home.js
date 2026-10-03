@@ -14,15 +14,16 @@ window.App.ready(function () {
     $('#open-status').innerHTML = App.site.openChip();
   }
 
+  /** Linha de informações do perfil: nota, bairro e equipe */
   function renderFacts() {
     const s = db.settings();
+    const b = UI.bindings(s);
     const rating = db.ratingSummary();
     const team = db.barbers({ active: true }).length;
-    const years = s.foundedYear ? new Date().getFullYear() - Number(s.foundedYear) : 0;
     $('#hero-facts').innerHTML = html`
-      ${rating.count ? html`<div class="fact"><strong>${U.number(rating.avg, 1)}<i class="bi bi-star-fill" aria-hidden="true"></i></strong><span>nota média em ${rating.count} avaliações</span></div>` : ''}
-      <div class="fact"><strong>${team}</strong><span>${team === 1 ? 'barbeiro' : 'barbeiros'} na equipe</span></div>
-      ${years > 0 ? html`<div class="fact"><strong>${years}+</strong><span>anos de casa</span></div>` : ''}`;
+      ${rating.count ? html`<span class="meta-rating"><i class="bi bi-star-fill" aria-hidden="true"></i><strong>${U.number(rating.avg, 1)}</strong> <span class="subtle">(${rating.count} ${rating.count === 1 ? 'avaliação' : 'avaliações'})</span></span>` : ''}
+      ${b.district || b.city ? html`<span><i class="bi bi-geo-alt" aria-hidden="true"></i>${[b.district, b.city].filter(Boolean).join(' · ')}</span>` : ''}
+      <span><i class="bi bi-people" aria-hidden="true"></i>${team} ${team === 1 ? 'profissional' : 'profissionais'}</span>`;
   }
 
   /** Cartão interativo: escolha o serviço e veja o próximo horário livre de verdade */
@@ -69,26 +70,16 @@ window.App.ready(function () {
   }
 
   function renderTeam() {
-    const order = [1, 2, 3, 4, 5, 6, 0];
     const list = db.barbers({ active: true });
     $('#home-team').innerHTML = list.length
       ? html`${list.map((b) => html`
-        <article class="member">
-          <div class="member-top">
-            ${UI.avatar(b.name, { color: b.color, photo: b.photo, size: 'lg' })}
-            <div><h3 class="member-name">${b.name}</h3><p class="member-role">${b.title}</p></div>
-          </div>
-          ${b.bio ? html`<p class="member-bio">${b.bio}</p>` : ''}
-          ${b.specialty ? html`<p class="member-spec"><i class="bi bi-scissors" aria-hidden="true"></i>${b.specialty}</p>` : ''}
-          <div>
-            <span class="sr-only">Atende: ${order.filter((d) => b.workDays.includes(d)).map((d) => U.WEEKDAYS[d]).join(', ')}</span>
-            <div class="week-days" aria-hidden="true">
-              ${order.map((d) => html`<span class="${b.workDays.includes(d) ? 'on' : ''}">${U.WEEKDAYS_SHORT[d]}</span>`)}
-            </div>
-          </div>
-          <a class="btn btn-outline btn-block" href="agendar.html?profissional=${b.id}">Agendar com ${U.firstName(b.name)}</a>
-        </article>`)}`
-      : UI.empty('bi-people', 'Equipe em atualização', 'Em breve você conhece nossos barbeiros por aqui.');
+        <a class="member" href="agendar.html?profissional=${b.id}">
+          ${UI.avatar(b.name, { color: b.color, photo: b.photo, size: 'lg' })}
+          <span class="member-name">${b.name}</span>
+          <span class="member-role">${b.specialty || b.title}</span>
+          <span class="member-cta">Agendar</span>
+        </a>`)}`
+      : UI.empty('bi-people', 'Equipe em atualização', 'Em breve você conhece nossos profissionais por aqui.');
   }
 
   function renderReviews() {
@@ -116,6 +107,28 @@ window.App.ready(function () {
 
   function renderHours() {
     $('#home-hours').innerHTML = App.site.hoursList();
+  }
+
+  // Compartilhar o perfil (WhatsApp, Instagram...) ou copiar o link
+  $('[data-share]').addEventListener('click', async () => {
+    const s = db.settings();
+    const url = window.FORBARBER.publicRoot || location.href;
+    if (navigator.share) {
+      try { await navigator.share({ title: s.name, text: `Agende na ${s.name}`, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+    UI.toast((await U.copyText(url)) ? 'Link copiado.' : url, 'info');
+  });
+
+  // Aba ativa conforme a rolagem
+  const tabs = [...document.querySelectorAll('.profile-tabs a')];
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        tabs.forEach((t) => t.toggleAttribute('aria-current', t.getAttribute('href') === `#${en.target.id}`));
+      });
+    }, { rootMargin: '-35% 0px -60% 0px' });
+    tabs.forEach((t) => { const sec = document.querySelector(t.getAttribute('href')); if (sec) io.observe(sec); });
   }
 
   $('[data-load-map]').addEventListener('click', () => {
