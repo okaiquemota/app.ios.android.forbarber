@@ -153,15 +153,16 @@
      usos no período: esses serviços saem de graça e o resto ganha desconto.
      ========================================================================== */
   const ACTIVE_APPT = ['confirmado', 'concluido'];
-  /** Mesmo dia do mês seguinte (31/01 -> 28/02) */
-  const plusMonth = (iso) => {
+  /** Mesmo dia n meses depois, limitado ao fim do mês (31/01 + 1 -> 28/02), como no Postgres */
+  const monthsFrom = (iso, n) => {
     const d = U.parseDate(iso);
     const day = d.getDate();
     d.setDate(1);
-    d.setMonth(d.getMonth() + 1);
+    d.setMonth(d.getMonth() + n);
     d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()));
     return U.toISODate(d);
   };
+  const plusMonth = (iso) => monthsFrom(iso, 1);
   const club = {
     plans: ({ active } = {}) => db.list('plans').filter((p) => (active ? p.active !== false : true))
       .sort((a, b) => (a.position || 0) - (b.position || 0) || a.price - b.price),
@@ -178,14 +179,23 @@
       if (sub.status === 'cancelada' || sub.status === 'pausada') return sub.status;
       return sub.periodEnd >= U.today() ? 'ativa' : 'vencida';
     },
-    usage(sub, ignoreId) {
-      return db.appointments({ clientId: sub.clientId, from: sub.periodStart, to: sub.periodEnd })
+    /** Mês do plano que contém a data (conta a partir do dia de início; pago adiantado estende o fim) */
+    window(sub, date = U.today()) {
+      let k = 0;
+      while (k < 600 && monthsFrom(sub.periodStart, k + 1) <= date) k++;
+      const start = monthsFrom(sub.periodStart, k);
+      const end = U.addDays(monthsFrom(sub.periodStart, k + 1), -1);
+      return { start, end: end > sub.periodEnd ? sub.periodEnd : end };
+    },
+    usage(sub, ignoreId, date) {
+      const w = club.window(sub, date);
+      return db.appointments({ clientId: sub.clientId, from: w.start, to: w.end })
         .filter((a) => a.subscriptionId === sub.id && a.id !== ignoreId && ACTIVE_APPT.includes(a.status)).length;
     },
-    usesLeft(sub, ignoreId) {
+    usesLeft(sub, ignoreId, date) {
       const plan = club.plan(sub.planId);
       if (!plan) return 0;
-      return plan.usesPerPeriod ? Math.max(0, plan.usesPerPeriod - club.usage(sub, ignoreId)) : Infinity;
+      return plan.usesPerPeriod ? Math.max(0, plan.usesPerPeriod - club.usage(sub, ignoreId, date)) : Infinity;
     },
     /** O que o plano cobre neste agendamento */
     coverage({ clientId, serviceIds, date, ignoreId }) {
@@ -194,7 +204,7 @@
       if (!sub || club.state(sub) !== 'ativa' || date < sub.periodStart || date > sub.periodEnd) return { ...none, sub };
       const plan = club.plan(sub.planId);
       if (!plan) return none;
-      const left = club.usesLeft(sub, ignoreId);
+      const left = club.usesLeft(sub, ignoreId, date);
       const coveredIds = left > 0 ? serviceIds.filter((id) => (plan.serviceIds || []).includes(id)) : [];
       const discountPct = Number(plan.discountOthers) || 0;
       return { applies: coveredIds.length > 0 || discountPct > 0, coveredIds, discountPct, sub, plan, usesLeft: left };
@@ -210,11 +220,14 @@
       return { total: Math.round(total * 100) / 100, clubValue };
     },
     mrr: () => U.sum(db.list('subscriptions').filter((x) => club.state(x) === 'ativa'), (x) => (club.plan(x.planId) || { price: 0 }).price),
-    /** Próximo período: continua do fim do atual, ou começa hoje se já venceu */
+    /** Próximo mês pago: continua do fim do atual, ou começa hoje se já venceu */
     nextPeriod(sub) {
       const t = U.today();
-      const start = sub && sub.periodEnd >= t ? U.addDays(sub.periodEnd, 1) : t;
-      return { start, end: U.addDays(plusMonth(start), -1) };
+      if (sub && sub.periodEnd >= t) {
+        const start = U.addDays(sub.periodEnd, 1);
+        return { start, end: club.window({ ...sub, periodEnd: '9999-12-31' }, U.addDays(plusMonth(start), -1)).end, extend: true };
+      }
+      return { start: t, end: U.addDays(plusMonth(t), -1), extend: false };
     },
     subscribe(clientId, planId, { paid = true, method = 'pix' } = {}) {
       const plan = club.plan(planId);
@@ -230,9 +243,10 @@
     registerPayment(subId, { amount, method = 'pix' } = {}) {
       const sub = db.get('subscriptions', subId);
       const plan = club.plan(sub.planId);
-      const { start, end } = club.nextPeriod(sub);
+      const { start, end, extend } = club.nextPeriod(sub);
       db.insert('subPayments', { subscriptionId: sub.id, clientId: sub.clientId, amount: amount == null ? plan.price : Number(amount), method, paidAt: U.nowISO(), periodStart: start, periodEnd: end });
-      return db.update('subscriptions', sub.id, { status: 'ativa', periodStart: start, periodEnd: end });
+      // Pago em dia: só estende o fim (o mês corrente e as visitas dele continuam valendo)
+      return db.update('subscriptions', sub.id, extend ? { status: 'ativa', periodEnd: end } : { status: 'ativa', periodStart: start, periodEnd: end });
     },
     /** Linhas de "o que inclui" para mostrar o plano */
     features(plan) {

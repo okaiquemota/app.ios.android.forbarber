@@ -12,5 +12,8 @@ $RUN "$PGBIN/initdb" -D "$DIR/data" -U postgres -A trust >/dev/null
 $RUN "$PGBIN/pg_ctl" -D "$DIR/data" -o "-p $PORT -k $DIR" -l "$DIR/log" start >/dev/null
 PSQL=(psql -h "$DIR" -p "$PORT" -U postgres -d postgres -v ON_ERROR_STOP=1 -q)
 "${PSQL[@]}" -f "$HERE/stub_supabase.sql"
-"${PSQL[@]}" -f "$HERE/../migrations/20261002000000_forbarber_schema.sql"
+for f in "$HERE"/../migrations/*.sql; do
+  case "$f" in *storage*) continue ;; esac
+  "${PSQL[@]}" -f "$f"
+done
 "${PSQL[@]}" -f "$HERE/forbarber_test.sql" -t

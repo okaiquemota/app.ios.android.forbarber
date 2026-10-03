@@ -567,7 +567,7 @@ window.App.ready(function () {
         <div>${svcs.length
           ? html`<strong>${svcs.map((s) => s.name).join(' + ')}</strong> · ${U.fmtDuration(duration())} · ${U.money(total)}${t ? html` · ${U.fmtDateHuman(state.date)} das ${t} às ${U.fromMin(U.toMin(t) + duration())}` : ''}`
           : 'Escolha os serviços para ver duração e valor.'}
-          ${cov && cov.applies ? html`<br><span class="club-tag"><i class="bi bi-stars"></i>${cov.plan.name}</span> <span class="text-sm">${cov.coveredIds.length ? 'serviço do plano incluso' : 'sem visitas restantes no plano'}${cov.discountPct ? ` · ${cov.discountPct}% nos demais` : ''}${cov.plan.usesPerPeriod ? ` · ${cov.plan.usesPerPeriod - App.club.usage(cov.sub)} de ${cov.plan.usesPerPeriod} visitas restantes` : ''}</span>` : ''}
+          ${cov && cov.applies ? html`<br><span class="club-tag"><i class="bi bi-stars"></i>${cov.plan.name}</span> <span class="text-sm">${cov.coveredIds.length ? 'serviço do plano incluso' : 'sem visitas restantes no plano'}${cov.discountPct ? ` · ${cov.discountPct}% nos demais` : ''}${cov.plan.usesPerPeriod ? ` · ${cov.usesLeft} de ${cov.plan.usesPerPeriod} visitas restantes` : ''}</span>` : ''}
           ${conflict ? html`<br><span class="text-danger">Conflita com ${conflict.clientId ? `o horário de ${clientName(conflict.clientId)} (${conflict.start})` : `um bloqueio (${conflict.reason || 'agenda bloqueada'})`}.</span>` : ''}</div>`;
       el('#a-summary').classList.toggle('warn', !!conflict);
     }

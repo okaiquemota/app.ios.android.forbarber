@@ -44,13 +44,21 @@
     services: { name: 'name', category: 'category', description: 'description', duration: 'duration', price: 'price', featured: 'featured', active: 'active', position: 'position' },
     barbers: { name: 'name', title: 'title', specialty: 'specialty', bio: 'bio', color: 'color', photo: 'photo', workDays: 'work_days', commission: 'commission', active: 'active' },
     clients: { name: 'name', phone: 'phone', email: 'email', birthday: 'birthday', active: 'active' },
-    appointments: { clientId: 'client_id', barberId: 'barber_id', services: 'services', date: 'date', start: 'start_time', duration: 'duration', total: 'total', status: 'status', paymentMethod: 'payment_method', notes: 'notes', source: 'source', overbook: 'overbook' },
+    appointments: { clientId: 'client_id', barberId: 'barber_id', services: 'services', date: 'date', start: 'start_time', duration: 'duration', total: 'total', status: 'status', paymentMethod: 'payment_method', notes: 'notes', source: 'source', overbook: 'overbook',
+      subscriptionId: 'subscription_id', coveredIds: 'covered_ids', clubValue: 'club_value', depositAmount: 'deposit_amount', depositStatus: 'deposit_status', depositPaidAt: 'deposit_paid_at' },
     blocks: { barberId: 'barber_id', date: 'date', start: 'start_time', end: 'end_time', reason: 'reason' },
     messages: { name: 'name', email: 'email', phone: 'phone', subject: 'subject', message: 'message', read: 'read' },
     reviews: { clientId: 'client_id', appointmentId: 'appointment_id', barberId: 'barber_id', name: 'name', rating: 'rating', text: 'text', visible: 'visible' },
     members: { name: 'name', phone: 'phone', active: 'active', barberId: 'barber_id' },
+    plans: { name: 'name', description: 'description', price: 'price', usesPerPeriod: 'uses_per_period', serviceIds: 'service_ids', discountOthers: 'discount_others', active: 'active', position: 'position' },
+    subscriptions: { clientId: 'client_id', planId: 'plan_id', status: 'status', startedAt: 'started_at', periodStart: 'period_start', periodEnd: 'period_end', notes: 'notes' },
+    subPayments: { subscriptionId: 'subscription_id', clientId: 'client_id', amount: 'amount', method: 'method', paidAt: 'paid_at', periodStart: 'period_start', periodEnd: 'period_end' },
+    waitlist: { clientId: 'client_id', date: 'date', period: 'period', serviceIds: 'service_ids', barberId: 'barber_id', notes: 'notes', status: 'status' },
   };
-  const TABLE = { services: 'services', barbers: 'barbers', appointments: 'appointments', blocks: 'blocks', messages: 'messages', reviews: 'reviews' };
+  const TABLE = {
+    services: 'services', barbers: 'barbers', appointments: 'appointments', blocks: 'blocks', messages: 'messages', reviews: 'reviews',
+    plans: 'club_plans', subscriptions: 'club_subscriptions', subPayments: 'club_payments', waitlist: 'waitlist',
+  };
 
   function toRow(kind, obj) {
     const map = FIELDS[kind];
@@ -77,9 +85,15 @@
       id: r.id, clientId: r.client_id, barberId: r.barber_id, services: r.services || [], date: r.date, start: t5(r.start_time),
       duration: r.duration, total: Number(r.total), status: r.status, paymentMethod: r.payment_method, notes: r.notes || '',
       source: r.source, overbook: r.overbook, createdAt: r.created_at, updatedAt: r.updated_at,
+      subscriptionId: r.subscription_id || null, coveredIds: r.covered_ids || [], clubValue: Number(r.club_value || 0),
+      depositAmount: Number(r.deposit_amount || 0), depositStatus: r.deposit_status || null, depositPaidAt: r.deposit_paid_at || null,
     }),
     blocks: (r) => ({ id: r.id, barberId: r.barber_id, date: r.date, start: t5(r.start_time), end: t5(r.end_time), reason: r.reason, createdAt: r.created_at }),
     messages: (r) => ({ id: r.id, name: r.name, email: r.email, phone: r.phone, subject: r.subject, message: r.message, read: r.read, createdAt: r.created_at }),
+    plans: (r) => ({ id: r.id, name: r.name, description: r.description, price: Number(r.price), usesPerPeriod: r.uses_per_period, serviceIds: r.service_ids || [], discountOthers: Number(r.discount_others), active: r.active, position: r.position, createdAt: r.created_at }),
+    subscriptions: (r) => ({ id: r.id, clientId: r.client_id, planId: r.plan_id, status: r.status, startedAt: r.started_at, periodStart: r.period_start, periodEnd: r.period_end, notes: r.notes, createdAt: r.created_at }),
+    subPayments: (r) => ({ id: r.id, subscriptionId: r.subscription_id, clientId: r.client_id, amount: Number(r.amount), method: r.method, paidAt: r.paid_at, periodStart: r.period_start, periodEnd: r.period_end, createdAt: r.created_at }),
+    waitlist: (r) => ({ id: r.id, clientId: r.client_id, date: r.date, period: r.period, serviceIds: r.service_ids || [], barberId: r.barber_id, notes: r.notes, status: r.status, createdAt: r.created_at }),
     reviews: (r) => ({ id: r.id, clientId: r.client_id, appointmentId: r.appointment_id, barberId: r.barber_id, name: r.name, rating: r.rating, text: r.text, visible: r.visible, createdAt: r.created_at }),
   };
 
@@ -134,20 +148,23 @@
     const data = {
       version: 1, meta: { cloud: true }, settings,
       services: [], barbers: [], users: [], appointments: [], blocks: [], messages: [], reviews: [],
+      plans: [], subscriptions: [], subPayments: [], waitlist: [],
     };
     const t = App.utils.today();
-    const [services, barbers, reviews] = await Promise.all([
+    const [services, barbers, reviews, plans] = await Promise.all([
       selectAll('services', (q) => q.eq('shop_id', shop.id).order('position').order('created_at')),
       selectAll('barbers', (q) => q.eq('shop_id', shop.id).order('created_at')),
       selectAll('reviews', (q) => q.eq('shop_id', shop.id).order('created_at', { ascending: false })),
+      selectAll('club_plans', (q) => q.eq('shop_id', shop.id).order('position')),
     ]);
+    data.plans = plans.map(FROM.plans);
     data.services = services.map(FROM.services);
     data.barbers = barbers.map(FROM.barbers);
     data.reviews = reviews.map(FROM.reviews);
 
     if (me && me.kind === 'staff') {
       const isAdmin = me.user.role === 'admin';
-      const [clients, notes, appts, blocks, members, messages, invites] = await Promise.all([
+      const [clients, notes, appts, blocks, members, messages, invites, subs, payments, waits] = await Promise.all([
         selectAll('clients', (q) => q.eq('shop_id', shop.id)),
         selectAll('client_notes', (q) => q.eq('shop_id', shop.id)),
         selectAll('appointments', (q) => q.eq('shop_id', shop.id).gte('date', App.utils.addDays(t, -400))),
@@ -155,7 +172,13 @@
         selectAll('shop_members', (q) => q.eq('shop_id', shop.id)),
         isAdmin ? selectAll('messages', (q) => q.eq('shop_id', shop.id)) : Promise.resolve([]),
         isAdmin ? selectAll('shop_invites', (q) => q.eq('shop_id', shop.id)) : Promise.resolve([]),
+        selectAll('club_subscriptions', (q) => q.eq('shop_id', shop.id)),
+        selectAll('club_payments', (q) => q.eq('shop_id', shop.id).gte('paid_at', App.utils.addDays(t, -400))),
+        selectAll('waitlist', (q) => q.eq('shop_id', shop.id).gte('date', App.utils.addDays(t, -30))),
       ]);
+      data.subscriptions = subs.map(FROM.subscriptions);
+      data.subPayments = payments.map(FROM.subPayments);
+      data.waitlist = waits.map(FROM.waitlist);
       // Ficha do cliente fica numa tabela só da equipe
       const noteOf = new Map(notes.map((n) => [n.client_id, n.notes]));
       data.users = [...members.map(FROM.members), ...clients.map((r) => ({ ...FROM.clients(r), notes: noteOf.get(r.id) || '' }))];
@@ -179,7 +202,15 @@
     });
     if (me && me.kind === 'client') {
       data.users = [me.user];
-      const own = await selectAll('appointments', (q) => q.eq('client_id', me.user.id));
+      const [own, subs, payments, waits] = await Promise.all([
+        selectAll('appointments', (q) => q.eq('client_id', me.user.id)),
+        selectAll('club_subscriptions', (q) => q.eq('client_id', me.user.id)),
+        selectAll('club_payments', (q) => q.eq('client_id', me.user.id)),
+        selectAll('waitlist', (q) => q.eq('client_id', me.user.id).gte('date', App.utils.addDays(t, -1))),
+      ]);
+      data.subscriptions = subs.map(FROM.subscriptions);
+      data.subPayments = payments.map(FROM.subPayments);
+      data.waitlist = waits.map(FROM.waitlist);
       own.map(FROM.appointments).forEach((a) => {
         const i = data.appointments.findIndex((x) => x.id === a.id);
         if (i >= 0) data.appointments[i] = a;
@@ -228,6 +259,10 @@
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter }, apply('messages', 'messages'))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'clients', filter }, apply('users', 'clients'))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'blocks', filter }, apply('blocks', 'blocks'))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'waitlist', filter }, apply('waitlist', 'waitlist'))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'club_subscriptions', filter }, apply('subscriptions', 'subscriptions'))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'club_payments', filter }, apply('subPayments', 'subPayments'))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'club_plans', filter }, apply('plans', 'plans'))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'client_notes', filter }, (payload) => {
         const row = payload.new;
         if (row && row.client_id && App.db.user(row.client_id)) App.db.applyRemote('users', 'UPDATE', row.client_id, { notes: row.notes });

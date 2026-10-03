@@ -240,7 +240,7 @@ window.App.ready(function () {
         <h2 class="wizard-title">Quais serviços?</h2>
         <p class="muted">Pode escolher mais de um: a duração e o valor somam automaticamente.</p>
       </div>
-      ${club ? html`<div class="notice"><i class="bi bi-stars"></i><div><strong>Você é do ${club.plan.name}.</strong> ${club.left === Infinity ? 'Visitas ilimitadas neste mês.' : club.left > 0 ? `Ainda ${club.left === 1 ? 'resta 1 visita' : `restam ${club.left} visitas`} até ${U.fmtDateShort(club.sub.periodEnd)}.` : `As visitas do plano acabaram neste mês (renova em ${U.fmtDateShort(U.addDays(club.sub.periodEnd, 1))}).`}</div></div>` : ''}
+      ${club ? html`<div class="notice"><i class="bi bi-stars"></i><div><strong>Você é do ${club.plan.name}.</strong> ${club.left === Infinity ? 'Visitas ilimitadas neste mês.' : club.left > 0 ? `Ainda ${club.left === 1 ? 'resta 1 visita' : `restam ${club.left} visitas`} até ${U.fmtDateShort(App.club.window(club.sub).end)}.` : `As visitas do plano acabaram neste mês (voltam em ${U.fmtDateShort(U.addDays(App.club.window(club.sub).end, 1))}).`}</div></div>` : ''}
       ${cats.map((c) => html`
         <div class="stack-sm">
           <h3 class="group-label">${c}</h3>
@@ -361,9 +361,9 @@ window.App.ready(function () {
           <div><span class="k">Serviços</span>${services.join(' + ')}</div>
           <div><span class="k">Profissional</span>${barberName}</div>
           <div><span class="k">Duração</span>${U.fmtDuration(dur)} (até ${end})</div>
-          <div><span class="k">Valor</span>${U.money(price)} ${clubName ? html`<span class="club-tag"><i class="bi bi-stars"></i>${clubName}</span>` : ''}
-            <span class="text-xs subtle">· ${dep ? `sinal de ${U.money(dep)} por Pix, o resto no local` : 'pague no local'}</span></div>
+          <div><span class="k">Valor</span>${U.money(price)} ${clubName ? html`<span class="club-tag"><i class="bi bi-stars"></i>${clubName}</span>` : ''}</div>
         </div>
+        <div class="text-sm muted">${dep ? html`<i class="bi bi-qr-code" aria-hidden="true"></i> Sinal de ${U.money(dep)} por Pix agora, o resto no local` : html`<i class="bi bi-wallet2" aria-hidden="true"></i> Pagamento no local`}</div>
         <div class="text-sm muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> ${b.fullAddress}</div>
       </div>`;
   };
@@ -513,6 +513,7 @@ window.App.ready(function () {
     const notesEl = $('#notes');
     if (notesEl) state.notes = notesEl.value.trim();
     UI.busy(btn, true);
+    state.saving = true;
     try {
       const appt = await B.create({
         clientId: user.id, barberId, serviceIds: state.services, date: state.date, start: state.time,
@@ -526,6 +527,7 @@ window.App.ready(function () {
       renderMobileBar();
       $('#wizard').scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
+      state.saving = false;
       UI.toast(err.message, 'error');
       if (/ocupado|bloqueado|passou/.test(err.message)) {
         state.time = null;
@@ -609,7 +611,8 @@ window.App.ready(function () {
 
   // Outra aba mudou a agenda (ex.: alguém marcou o mesmo horário): recalcula
   db.subscribe((source) => {
-    if (source !== 'remote' || state.done) return;
+    // Durante a confirmação a própria reserva chega como mudança remota: não é conflito
+    if (source !== 'remote' || state.done || state.saving) return;
     if (state.step === 3) renderPanel();
     if (state.time && !isSlotValid()) {
       state.time = null;

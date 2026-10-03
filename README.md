@@ -18,7 +18,7 @@ app/                  o app de cada barbearia (servido em /<nome>/ pelo vercel.j
   sw.js               cache do app instalável
   assets/js/config.js ÚNICO arquivo a editar no deploy (chaves e planos)
 supabase/migrations/  banco: tabelas, segurança por barbearia, funções
-supabase/tests/       53+ testes de segurança e regras (bash supabase/tests/run.sh)
+supabase/tests/       88 testes de segurança e regras (bash supabase/tests/run.sh)
 vercel.json           endereço por barbearia (/nome/… → app/…)
 mobile/               app ForBarber para iOS e Android (Capacitor) — ver mobile/README.md
 ```
@@ -27,11 +27,19 @@ Sem chaves no `config.js`, tudo roda como **demonstração local** (dados de exe
 
 ## Colocar no ar
 
-1. **Supabase:** crie o projeto e rode, na ordem, `supabase/migrations/20261002000000_forbarber_schema.sql` e `…000100_forbarber_storage.sql` (SQL Editor ou `supabase db push`).
+1. **Supabase:** crie o projeto e rode, na ordem, os arquivos de `supabase/migrations/` (`…02000000_forbarber_schema.sql`, `…02000100_forbarber_storage.sql` e `…03000000_forbarber_clube_espera_sinal.sql`), pelo SQL Editor ou com `supabase db push`.
 2. Em **Authentication → Sign In / Providers → Email**, deixe **Confirm email ligado**. Os convites de barbeiro dependem disso (quem entra com o e-mail convidado vira equipe).
 3. Em **Authentication → URL Configuration**: Site URL = seu domínio; Redirect URLs = `https://seudominio/**`.
 4. Em `app/assets/js/config.js`, preencha `supabaseUrl` e `supabaseAnonKey` (chave pública *anon/publishable*, nunca a service role), `siteUrl` e confira preços dos `plans`. No site de vendas, aponte `appUrl` para este deploy.
 5. **Vercel:** importe o repositório (sem build, site estático). O `vercel.json` já faz `/nome/` abrir o app daquela barbearia.
+
+## Recursos para a barbearia
+
+- **Clube de assinatura** (Painel › Clube): planos mensais com visitas por mês (ou ilimitadas), serviços inclusos e desconto nos demais. No agendamento, o que o plano cobre sai de graça e o resto ganha o desconto; acabando as visitas do mês, o cliente paga normalmente. A equipe registra a mensalidade (Pix, cartão ou dinheiro) e cobra pelo WhatsApp quem venceu. O financeiro soma as mensalidades e a comissão do barbeiro considera o valor do serviço coberto.
+- **Lista de espera** (Painel › Lista de espera): quando o dia está cheio, o cliente entra na lista pelo agendamento. O painel mostra as vagas que surgem para cada pessoa e o botão de avisar pelo WhatsApp; ao agendar, a pessoa sai da lista sozinha.
+- **Sinal por Pix** (Painel › Configurações › Sinal): valor fixo ou percentual, para todos ou só para clientes novos e quem já faltou. O app gera o QR Code e o "copia e cola" com o valor; não há gateway, então a equipe confere o extrato e marca "Sinal recebido". O valor é descontado na conclusão e, se o cliente remarcar, o sinal pago vai junto.
+
+No servidor, preço com clube e valor do sinal são calculados por `book_appointment`; o cliente entra e sai da lista de espera por `join_waitlist`/`leave_waitlist` e só lê os próprios dados.
 
 ## Assinatura (cobrança)
 

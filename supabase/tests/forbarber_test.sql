@@ -163,6 +163,89 @@ select public.t_ok((select name = 'Grey Barber' from public.shops where id = :'s
 select public.t_err(format($$insert into public.blocks (shop_id, date, start_time, end_time) values (%L, current_date, '09:00', '10:00')$$, :'shop'), 'row-level security', 'rival não bloqueia agenda alheia');
 reset role;
 
+\echo '--- Clube de assinatura, sinal por Pix e lista de espera'
+select public.t_as('authenticated', '11111111-1111-1111-1111-111111111111', 'dono@teste.com');
+set role authenticated;
+insert into public.club_plans (shop_id, name, price, uses_per_period, service_ids, discount_others)
+  values (:'shop', 'Clube Corte', 99.90, 2, array[:'svc_corte']::uuid[], 10) returning id as plan \gset
+insert into public.club_subscriptions (shop_id, client_id, plan_id, period_start, period_end)
+  values (:'shop', :'client', :'plan', current_date, current_date + 30) returning id as sub \gset
+insert into public.club_payments (shop_id, subscription_id, client_id, amount, period_start, period_end)
+  values (:'shop', :'sub', :'client', 99.90, current_date, current_date + 30);
+update public.shops set settings = settings || '{"depositEnabled":true,"depositMode":"percentual","depositValue":50,"depositScope":"todos","pixKey":"pix@grey.com"}' where id = :'shop';
+select public.t_ok(true, 'dono cria plano, assinante e mensalidade');
+reset role;
+
+select public.t_as('anon', null, null);
+set role anon;
+select public.t_ok((select count(*) = 1 from public.club_plans where shop_id = :'shop'), 'anon vê os planos do clube no site');
+select public.t_ok((select count(*) = 0 from public.club_subscriptions), 'anon NÃO vê assinantes');
+select public.t_err(format($$insert into public.club_plans (shop_id, name, price) values (%L, 'Hack', 1)$$, :'shop'), 'row-level security', 'anon não cria plano');
+reset role;
+
+select public.t_as('authenticated', '33333333-3333-3333-3333-333333333333', 'outro@teste.com');
+set role authenticated;
+select id as wait2 from public.join_waitlist(:'shop', :'dia', 'manha', array[:'svc_corte']::uuid[]) \gset
+reset role;
+
+select public.t_as('authenticated', '22222222-2222-2222-2222-222222222222', 'cliente@teste.com');
+set role authenticated;
+select public.t_ok((select count(*) = 1 from public.club_subscriptions), 'cliente vê a própria assinatura');
+select public.t_ok((select count(*) = 1 from public.club_payments), 'cliente vê as próprias mensalidades');
+select public.t_err(format($$insert into public.club_subscriptions (shop_id, client_id, plan_id, period_start, period_end) values (%L, %L, %L, current_date, current_date + 30)$$, :'shop', :'client', :'plan'), 'row-level security', 'cliente não se dá assinatura');
+select id as wait from public.join_waitlist(:'shop', :'dia', 'tarde', array[:'svc_corte']::uuid[], null, 'Depois das 15h') \gset
+select public.t_ok((select id = :'wait' from public.join_waitlist(:'shop', :'dia', 'qualquer', array[:'svc_corte']::uuid[])), 'entrar de novo no mesmo dia atualiza a entrada');
+select public.t_ok((select count(*) = 1 from public.waitlist), 'cliente vê só a própria lista de espera');
+select public.t_err(format($$select public.leave_waitlist(%L)$$, :'wait2'), 'não encontrada', 'não tira outro cliente da lista');
+select public.t_err(format($$select public.join_waitlist(%L, current_date - 2, 'manha', array[%L]::uuid[])$$, :'shop', :'svc_corte'), 'agenda aberta', 'lista de espera só em dia da agenda aberta');
+select id as appt_c1 from public.book_appointment(:'shop', :'barber', array[:'svc_corte', :'svc_barba']::uuid[], :'dia', '16:00') \gset
+select public.t_ok((select total = 27 and club_value = 40 and subscription_id = :'sub' and covered_ids = array[:'svc_corte']::uuid[] from public.appointments where id = :'appt_c1'), 'clube: corte incluso e 10% na barba');
+select public.t_ok((select deposit_amount = 13.50 and deposit_status = 'pendente' from public.appointments where id = :'appt_c1'), 'sinal de 50% calculado no servidor');
+select public.t_ok((select status = 'agendado' from public.waitlist where id = :'wait'), 'agendar tira da lista de espera');
+select id as appt_c2 from public.book_appointment(:'shop', :'barber', array[:'svc_corte']::uuid[], :'dia', '17:30') \gset
+select public.t_ok((select total = 0 and deposit_amount = 0 and deposit_status is null from public.appointments where id = :'appt_c2'), 'visita 100% coberta não cobra sinal');
+select id as appt_c3 from public.book_appointment(:'shop', :'barber', array[:'svc_corte']::uuid[], :'dia', '09:00') \gset
+select public.t_ok((select total = 36 and subscription_id is null and club_value = 0 from public.appointments where id = :'appt_c3'), 'acabaram as visitas do mês: paga com desconto');
+select public.t_err(format($$select * from public.club_coverage(%L, array[]::uuid[], current_date)$$, :'client'), 'permission denied', 'função interna do clube não fica exposta');
+reset role;
+select public.t_ok((select cardinality(covered_ids) = 0 from public.club_coverage(:'client', array[:'svc_corte']::uuid[], :'dia')), 'cobertura: visitas do mês esgotadas');
+set role authenticated;
+update public.appointments set deposit_status = 'pago' where id = :'appt_c1';
+select public.t_ok((select deposit_status = 'pendente' from public.appointments where id = :'appt_c1'), 'cliente não marca o próprio sinal como pago');
+reset role;
+
+select public.t_as('authenticated', '44444444-4444-4444-4444-444444444444', 'barbeiro@teste.com');
+set role authenticated;
+select public.t_ok((select count(*) = 2 from public.waitlist where shop_id = :'shop'), 'barbeiro vê a lista de espera');
+update public.appointments set deposit_status = 'pago', deposit_paid_at = now() where id = :'appt_c1';
+select public.t_ok((select deposit_status = 'pago' from public.appointments where id = :'appt_c1'), 'equipe confirma o sinal recebido');
+update public.club_subscriptions set period_end = period_end + 31 where id = :'sub';
+select public.t_ok((select period_start = current_date from public.club_subscriptions where id = :'sub'), 'mensalidade adiantada estende o fim sem mudar o início');
+update public.club_plans set price = 1 where id = :'plan';
+select public.t_ok((select price = 99.90 from public.club_plans where id = :'plan'), 'barbeiro não altera preço do plano');
+reset role;
+
+select public.t_as('authenticated', '22222222-2222-2222-2222-222222222222', 'cliente@teste.com');
+set role authenticated;
+select id as appt_c4 from public.book_appointment(:'shop', :'barber', array[:'svc_corte', :'svc_barba']::uuid[], :'dia', '11:15', '', :'appt_c1') \gset
+select public.t_ok((select deposit_status = 'pago' and deposit_amount = 13.50 and total = 27 and subscription_id = :'sub' from public.appointments where id = :'appt_c4'), 'remarcação leva o sinal pago e a visita do clube');
+reset role;
+select public.t_as('authenticated', '11111111-1111-1111-1111-111111111111', 'dono@teste.com');
+set role authenticated;
+update public.shops set settings = settings || '{"depositScope":"novos_e_faltosos"}' where id = :'shop';
+reset role;
+select public.t_as('authenticated', '22222222-2222-2222-2222-222222222222', 'cliente@teste.com');
+set role authenticated;
+select id as appt_c5 from public.book_appointment(:'shop', :'barber', array[:'svc_barba']::uuid[], :'dia', '12:30') \gset
+select public.t_ok((select deposit_amount = 0 and total = 27 from public.appointments where id = :'appt_c5'), 'sinal só para novos e faltosos: cliente fiel não paga');
+reset role;
+
+select public.t_as('authenticated', '55555555-5555-5555-5555-555555555555', 'rival@teste.com');
+set role authenticated;
+select public.t_ok((select count(*) = 0 from public.club_subscriptions), 'rival NÃO vê assinantes de outra barbearia');
+select public.t_ok((select count(*) = 0 from public.waitlist), 'rival NÃO vê lista de espera de outra barbearia');
+reset role;
+
 \echo '--- Plano e teste grátis (como service role / cobrança)'
 select public.t_as('service_role', null, null);
 update public.shops set plan = 'solo' where id = :'shop';
@@ -184,6 +267,7 @@ select public.delete_my_user();
 reset role;
 select public.t_ok((select count(*) = 0 from auth.users where id = '33333333-3333-3333-3333-333333333333'), 'cliente exclui a própria conta (login apagado)');
 select public.t_ok((select user_id is null and not active from public.clients where id = :'client2'), 'cadastro na barbearia fica desligado');
+select public.t_ok((select status = 'cancelado' from public.waitlist where id = :'wait2'), 'conta excluída sai da lista de espera');
 select public.t_as('authenticated', '11111111-1111-1111-1111-111111111111', 'dono@teste.com');
 set role authenticated;
 select public.t_err($$select public.delete_my_user()$$, 'dono de uma barbearia', 'dono não exclui a conta com barbearia ativa');
