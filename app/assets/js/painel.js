@@ -853,7 +853,7 @@ window.App.ready(function () {
   /* ---------- Aviso de assinatura (teste acabando, agendamento online pausado) ---------- */
   function renderPlanBanner() {
     const sub = App.cloud && auth.isCloud() ? App.cloud.subscription() : null;
-    const cta = (label) => (isAdmin ? html` <a class="link" href="assinatura.html">${label}</a>` : '');
+    const cta = (label) => (isAdmin ? html` <a class="link" href="assinatura.html">${window.FORBARBER.native ? 'Ver assinatura' : label}</a>` : '');
     let msg = null;
     if (sub && page !== 'assinatura') {
       if (!sub.live) {

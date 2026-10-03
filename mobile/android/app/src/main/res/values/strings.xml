@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ForBarber</string>
+    <string name="title_activity_main">ForBarber</string>
+    <string name="package_name">br.com.movcode.forbarber</string>
+    <string name="custom_url_scheme">br.com.movcode.forbarber</string>
+</resources>

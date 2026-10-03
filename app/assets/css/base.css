@@ -787,3 +787,22 @@ fieldset.field legend { padding: 0; margin-bottom: 0.4rem; }
   font-weight: 700;
 }
 .skip-link:focus { top: 12px; color: var(--primary-ink); }
+
+/* ---------- App de celular: espaço da barra de status (notch) ---------- */
+html.is-native {
+  --safe-top: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  --safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
+}
+html.is-native body { padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
+html.is-native body::before {
+  content: '';
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: var(--safe-top);
+  background: var(--bg);
+  z-index: 1000;
+}
+html.is-native .site-header, html.is-native .topbar, html.is-native .p-header { top: var(--safe-top); }
+html.is-native .demo-ribbon { display: none; }
+html.is-native .side { padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
+html.is-native .mobile-nav { top: calc(var(--header-h) + var(--safe-top)); }

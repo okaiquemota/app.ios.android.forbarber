@@ -28,6 +28,10 @@
     salesWhatsapp: '5516982157266',
     salesUrl: 'https://movcode.com.br/sistema-para-barbearia',
 
+    // Endereço onde este sistema está publicado (ex.: https://app.forbarber.com.br/).
+    // O app de celular usa para os links que saem dele: e-mails, WhatsApp, compartilhar.
+    webUrl: '',
+
     // Site do produto (repositório movcodebr/site.produto.forbarber)
     siteUrl: 'https://movcodebr.github.io/site.produto.forbarber/',
   };
@@ -37,6 +41,12 @@
      navegador continua vendo /greybarber/: é dali que sai o "slug".
      Acessando /app/ direto (GitHub Pages, arquivo local) vale ?b=slug, e sem
      nada abre a demonstração. */
+  // Dentro do app de iPhone/Android (Capacitor) não há endereço por barbearia:
+  // a barbearia vem de ?b=nome e fica guardada no aparelho.
+  const cap = window.Capacitor;
+  const native = !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
+  const store = () => (native ? window.localStorage : window.sessionStorage);
+
   const script = document.currentScript;
   const appRoot = new URL('../../', script ? script.src : location.href);
   const segment = decodeURIComponent(appRoot.pathname.replace(/\/$/, '').split('/').pop() || '').toLowerCase();
@@ -44,8 +54,8 @@
   if (!slug) {
     const fromQuery = new URLSearchParams(location.search).get('b');
     try {
-      if (fromQuery) window.sessionStorage.setItem('forbarber:slug', fromQuery.toLowerCase());
-      slug = (fromQuery || window.sessionStorage.getItem('forbarber:slug') || '').toLowerCase() || null;
+      if (fromQuery) store().setItem('forbarber:slug', fromQuery.toLowerCase());
+      slug = (fromQuery || store().getItem('forbarber:slug') || '').toLowerCase() || null;
     } catch (e) {
       slug = fromQuery ? fromQuery.toLowerCase() : null;
     }
@@ -53,6 +63,15 @@
 
   config.slug = slug || 'demo';
   config.appRoot = appRoot.href;
+  config.native = native;
+  config.platform = native ? cap.getPlatform() : 'web';
+  // Endereço público (o que vai em e-mail e WhatsApp) e endereço de outra barbearia
+  const web = (config.webUrl || '').replace(/\/?$/, '/');
+  config.webBase = native ? web : new URL('../', appRoot).href;
+  config.publicRoot = native && config.webUrl ? `${web}${config.slug}/` : appRoot.href;
+  config.shopUrl = (s, path = '') => (native
+    ? `${appRoot.href}${path}${path.includes('?') ? '&' : '?'}b=${encodeURIComponent(s)}`
+    : `${config.webBase}${s}/${path}`);
   config.cloud = !!(config.supabaseUrl && config.supabaseAnonKey);
   config.mode = config.cloud && config.slug !== 'demo' ? 'cloud' : 'local';
 

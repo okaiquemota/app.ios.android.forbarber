@@ -20,6 +20,7 @@ app/                  o app de cada barbearia (servido em /<nome>/ pelo vercel.j
 supabase/migrations/  banco: tabelas, segurança por barbearia, funções
 supabase/tests/       53+ testes de segurança e regras (bash supabase/tests/run.sh)
 vercel.json           endereço por barbearia (/nome/… → app/…)
+mobile/               app ForBarber para iOS e Android (Capacitor) — ver mobile/README.md
 ```
 
 Sem chaves no `config.js`, tudo roda como **demonstração local** (dados de exemplo no navegador). Também é o que acontece em `/demo/` e `/app/`.

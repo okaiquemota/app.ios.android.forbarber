@@ -177,4 +177,16 @@ set role authenticated;
 select public.t_err(format($$select public.book_appointment(%L, %L, array[%L]::uuid[], %L, '16:00')$$, :'shop', :'barber', :'svc_corte', :'dia'), 'pausado', 'teste vencido pausa agendamento online');
 reset role;
 
+\echo '--- Excluir a conta (lojas de apps)'
+select public.t_as('authenticated', '33333333-3333-3333-3333-333333333333', 'outro@teste.com');
+set role authenticated;
+select public.delete_my_user();
+reset role;
+select public.t_ok((select count(*) = 0 from auth.users where id = '33333333-3333-3333-3333-333333333333'), 'cliente exclui a própria conta (login apagado)');
+select public.t_ok((select user_id is null and not active from public.clients where id = :'client2'), 'cadastro na barbearia fica desligado');
+select public.t_as('authenticated', '11111111-1111-1111-1111-111111111111', 'dono@teste.com');
+set role authenticated;
+select public.t_err($$select public.delete_my_user()$$, 'dono de uma barbearia', 'dono não exclui a conta com barbearia ativa');
+reset role;
+
 \echo '=== TODOS OS TESTES PASSARAM ==='

@@ -151,7 +151,7 @@ window.App.ready(function () {
       if (!data) return;
       const btn = form.querySelector('[type=submit]');
       UI.busy(btn, true);
-      const res = await App.cloud.sendReset(data.email, `${window.FORBARBER.appRoot}senha.html?recuperar=1`);
+      const res = await App.cloud.sendReset(data.email, `${window.FORBARBER.publicRoot}senha.html?recuperar=1`);
       UI.busy(btn, false);
       if (!res.ok) return UI.setError(form.elements.email, res.error);
       card.innerHTML = html`

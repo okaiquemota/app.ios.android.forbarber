@@ -14,7 +14,7 @@ window.App.ready(function () {
   const CLOUD = db.isCloud();
   const accountOf = (barberId) => db.staffUsers().find((u) => u.barberId === barberId) || null;
   const inviteOf = (barberId) => db.invites().find((i) => i.barberId === barberId) || null;
-  const loginUrl = () => `${window.FORBARBER.appRoot}cadastro.html`;
+  const loginUrl = () => `${window.FORBARBER.publicRoot}cadastro.html`;
 
   function render() {
     const t = U.today();

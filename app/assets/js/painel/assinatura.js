@@ -59,7 +59,7 @@ window.App.ready(function () {
             <p class="muted">${text}</p>
           </div>
           <div class="sub-facts">
-            <div><span class="k">Endereço</span><a class="link" href="${CFG.appRoot}" target="_blank" rel="noopener">${CFG.appRoot.replace(/^https?:\/\//, '')}</a></div>
+            <div><span class="k">Endereço</span><a class="link" href="${CFG.publicRoot}" target="_blank" rel="noopener">${CFG.publicRoot.replace(/^https?:\/\//, '')}</a></div>
             <div><span class="k">Barbeiros ativos</span>${active}${limit && limit < 99 ? ` de ${limit}` : ''}</div>
           </div>
           ${total && sub.live ? html`<div class="meter" aria-hidden="true"><span style="width:${Math.round((used / total) * 100)}%"></span></div>` : ''}
@@ -70,7 +70,7 @@ window.App.ready(function () {
   function planHTML(p, sub, s, active) {
     const current = sub && sub.status === 'active' && sub.plan === p.id;
     const fits = active <= p.barbers;
-    const msg = `Olá! Quero assinar o ForBarber no plano ${p.name} (${U.money(p.price)}/mês) para a ${s.name}${sub ? `: ${CFG.appRoot}` : '.'}`;
+    const msg = `Olá! Quero assinar o ForBarber no plano ${p.name} (${U.money(p.price)}/mês) para a ${s.name}${sub ? `: ${CFG.publicRoot}` : '.'}`;
     const href = p.checkoutUrl || U.waLink(CFG.salesWhatsapp, msg);
     return html`
       <article class="plan-card ${current ? 'is-current' : ''}">
@@ -87,11 +87,21 @@ window.App.ready(function () {
       </article>`;
   }
 
+  // No app de celular a assinatura é só consulta (compra e troca de plano ficam fora das lojas)
+  if (CFG.native) {
+    const sec = document.querySelector('[aria-labelledby="plans-title"]');
+    if (sec) sec.hidden = true;
+  }
+
   function render() {
     const s = db.settings();
     const sub = App.cloud && App.auth.isCloud() ? App.cloud.subscription() : null;
     const active = db.barbers({ active: true }).length;
     $('#sub-status').innerHTML = statusHTML(sub, s, active);
+    if (CFG.native) {
+      $('#sub-status').innerHTML = statusHTML(sub, s, active);
+      return;
+    }
     $('#plans').innerHTML = html`${plans.map((p) => planHTML(p, sub, s, active))}`;
     const note = plans.some((p) => p.checkoutUrl)
       ? 'Depois do pagamento, o plano é ativado em até 1 dia útil.'

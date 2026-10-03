@@ -11,6 +11,12 @@
   const CFG = window.FORBARBER;
   const BG = '#0d0c0a';
 
+  // Dentro do app de iPhone/Android já é app: sem manifesto, cache nem botão de instalar
+  if (CFG.native) {
+    App.pwa = { available: () => false, install() {}, standalone: () => true, isIOS: false, refreshButtons() {} };
+    return;
+  }
+
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const standalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   let deferred = null;

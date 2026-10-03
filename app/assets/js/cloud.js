@@ -349,9 +349,12 @@
     await rpc('update_my_profile', { p_shop: shop.id, p_name: name, p_phone: phone, p_birthday: birthday || null });
     await reload();
   }
+  /** Apaga o login de vez, em todas as barbearias (exigência das lojas de apps) */
   async function deleteAccount() {
-    await rpc('delete_my_account', { p_shop: shop.id });
-    await sb.auth.signOut();
+    await client();
+    await rpc('delete_my_user', {});
+    await sb.auth.signOut().catch(() => {});
+    me = null;
   }
 
   /** Garante o cadastro do cliente nesta barbearia (uma conta serve para várias) */
@@ -397,7 +400,7 @@
     const { data, error } = await sb.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
-      options: { data: { name, phone, birthday: birthday || null }, emailRedirectTo: redirect || `${CFG.appRoot}login.html?confirmado=1` },
+      options: { data: { name, phone, birthday: birthday || null }, emailRedirectTo: redirect || `${CFG.publicRoot}login.html?confirmado=1` },
     });
     if (error) return { ok: false, error: friendly(error) };
     if (!data.session) return { ok: true, needsConfirmation: true };
@@ -424,7 +427,7 @@
 
   async function sendReset(email, redirect) {
     await client();
-    const { error } = await sb.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo: redirect || `${CFG.appRoot}senha.html` });
+    const { error } = await sb.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo: redirect || `${CFG.publicRoot}senha.html` });
     return error ? { ok: false, error: friendly(error) } : { ok: true };
   }
   async function setNewPassword(password) {

@@ -198,7 +198,7 @@ window.App.ready(function () {
   $('#delete-account').addEventListener('click', async () => {
     const ok = await UI.confirm({
       title: 'Excluir conta',
-      message: 'Seus horários futuros serão cancelados e você sairá da conta. Essa ação não pode ser desfeita.',
+      message: CLOUD ? 'Sua conta ForBarber será apagada em todas as barbearias e os horários futuros serão cancelados. Essa ação não pode ser desfeita.' : 'Seus horários futuros serão cancelados e você sairá da conta. Essa ação não pode ser desfeita.',
       confirmText: 'Excluir conta',
       danger: true,
     });

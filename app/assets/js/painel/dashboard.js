@@ -215,7 +215,7 @@ window.App.ready(function () {
       if (el) el.remove();
       return;
     }
-    const link = window.FORBARBER.appRoot;
+    const link = window.FORBARBER.publicRoot;
     const steps = [
       { done: false, icon: 'bi-scissors', href: 'servicos.html', title: 'Confira serviços e preços', text: 'Já criamos corte, barba e combo. Troque valores e tempos.' },
       { done: false, icon: 'bi-clock', href: 'configuracoes.html', title: 'Ajuste os horários', text: 'Dias de funcionamento, intervalo entre horários e antecedência.' },

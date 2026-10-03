@@ -517,6 +517,27 @@ begin
   update public.clients set active = false, user_id = null where id = v_client;
 end $$;
 
+/** Exclui a conta de vez (exigência da App Store e do Google Play): sai de todas as
+    barbearias, cancela horários futuros e apaga o login. Dono precisa encerrar a barbearia antes. */
+create or replace function public.delete_my_user() returns void
+language plpgsql security definer set search_path = public as $$
+declare
+  v_uid uuid := auth.uid();
+begin
+  if v_uid is null then
+    raise exception 'Entre na sua conta.' using errcode = '28000';
+  end if;
+  if exists (select 1 from public.shops where owner_id = v_uid) then
+    raise exception 'Você é dono de uma barbearia. Fale com o suporte para encerrá-la antes de excluir a conta.';
+  end if;
+  update public.appointments a set status = 'cancelado', notes = trim(a.notes || ' Conta excluída pelo cliente.')
+  from public.clients c
+  where a.client_id = c.id and c.user_id = v_uid and a.status = 'confirmado' and a.date >= current_date;
+  update public.clients set active = false, user_id = null where user_id = v_uid;
+  delete from public.shop_members where user_id = v_uid;
+  delete from auth.users where id = v_uid;
+end $$;
+
 /** Horários ocupados para o agendamento online, sem dados de clientes */
 create or replace function public.public_busy(p_shop uuid, p_from date, p_to date)
 returns table (kind text, id uuid, barber_id uuid, date date, start_time time, duration int)

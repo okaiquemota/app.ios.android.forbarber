@@ -12,9 +12,12 @@
   const UI = App.ui;
   const page = document.body.dataset.page;
 
-  const BASE = new URL('./', location.href).href;
+  // No app de celular os links que saem dele (e-mails) apontam para o site publicado
+  const BASE = CFG.native ? CFG.webBase : new URL('./', location.href).href;
   const PREFIX = BASE.replace(/^https?:\/\//, '');
-  const panelUrl = (slug) => `${BASE}${slug}/painel/index.html`;
+  const panelUrl = (slug) => CFG.shopUrl(slug, 'painel/index.html');
+  // Barbearia nova é criada pelo site (no app só se entra): abre no navegador
+  const criarHref = CFG.native ? (CFG.webUrl ? `${CFG.webBase}criar.html` : '') : 'criar.html';
   const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
   const sales = (text) => U.waLink(CFG.salesWhatsapp, text || 'Olá! Quero saber mais sobre o ForBarber.');
 
@@ -27,6 +30,13 @@
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
     .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-{2,}/g, '-').replace(/^-+/, '').slice(0, 40);
 
+  if (CFG.native) {
+    document.querySelectorAll('a[href="criar.html"]').forEach((el) => {
+      if (criarHref) el.href = criarHref;
+      else (el.closest('.p-alt') || el).remove();
+    });
+    document.querySelectorAll('[data-site]').forEach((el) => { el.href = 'index.html'; el.removeAttribute('data-site'); });
+  }
   document.querySelectorAll('[data-host]').forEach((el) => { el.textContent = PREFIX.replace(/\/$/, ''); });
   document.querySelectorAll('[data-sales]').forEach((el) => { el.href = sales(); });
   document.querySelectorAll('[data-site]').forEach((el) => { if (CFG.siteUrl) el.href = CFG.siteUrl; });
@@ -247,7 +257,7 @@
                 <i class="bi bi-chevron-right"></i>
               </a>`)}</div>`
           : html`<div class="notice"><i class="bi bi-info-circle"></i><div>Esta conta ainda não faz parte de nenhuma barbearia. Se você é barbeiro, peça para o dono te convidar pelo painel com este e-mail.</div></div>`}
-        <a class="btn ${shops.length ? 'btn-outline' : 'btn-primary'} btn-block" href="criar.html"><i class="bi bi-plus-lg"></i>${shops.length ? 'Criar outra barbearia' : 'Criar minha barbearia'}</a>
+        ${criarHref ? html`<a class="btn ${shops.length ? 'btn-outline' : 'btn-primary'} btn-block" href="${criarHref}"><i class="bi bi-plus-lg"></i>${shops.length ? 'Criar outra barbearia' : 'Criar minha barbearia'}</a>` : ''}
         <button type="button" class="btn btn-ghost btn-block" id="logout"><i class="bi bi-box-arrow-right"></i>Entrar com outra conta</button>`;
       $('#logout').addEventListener('click', async () => {
         await sb.auth.signOut().catch(() => {});
