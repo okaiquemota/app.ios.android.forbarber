@@ -418,6 +418,14 @@ window.App.ready(function () {
       </div>`;
   }
 
+  /** No app: diz quando o cliente vai ser lembrado, com atalho para mudar */
+  function remindLine() {
+    const list = App.reminders.get(auth.current());
+    return html`<p class="remind-line"><i class="bi ${list.length ? 'bi-bell' : 'bi-bell-slash'}" aria-hidden="true"></i>
+      <span>${list.length ? `Vamos te lembrar ${App.reminders.summary(list)}.` : 'Você desligou os lembretes.'}</span>
+      <button type="button" class="link" data-reminders>Mudar</button></p>`;
+  }
+
   function panelDone() {
     const a = db.get('appointments', state.done);
     if (!a) return UI.empty('bi-calendar-x', 'Agendamento não encontrado');
@@ -434,6 +442,7 @@ window.App.ready(function () {
         </div>
         ${ticketHTML({ date: a.date, time: a.start, end, services: a.services.map((x) => x.name), barberName: b.name, price: a.total, dur: a.duration, clubName: a.subscriptionId ? ((App.club.plan((db.get('subscriptions', a.subscriptionId) || {}).planId) || {}).name || 'Clube') : '', dep: a.depositStatus === 'pendente' ? a.depositAmount : 0 })}
         ${a.depositStatus === 'pendente' ? UI.pixBox(a) : ''}
+        ${App.native && App.reminders ? remindLine() : ''}
         <div class="cluster">
           <button type="button" class="btn btn-primary" data-ics><i class="bi bi-calendar-plus"></i>Salvar na agenda do celular</button>
           <a class="btn btn-whatsapp" href="${U.waLink(s.whatsapp, msg)}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i>Avisar no WhatsApp</a>
@@ -600,6 +609,7 @@ window.App.ready(function () {
     const confirmBtn = t.closest('[data-confirm]');
     if (confirmBtn) return confirmBooking(confirmBtn);
     if (t.closest('[data-ics]')) return downloadICS();
+    if (t.closest('[data-reminders]')) return App.reminders.openSettings(auth.current(), { onSave: renderPanel });
     if (t.closest('[data-waitlist]')) return openWaitlist();
     if (t.closest('[data-switch-account]')) {
       saveDraft();

@@ -273,4 +273,4 @@ set role authenticated;
 select public.t_err($$select public.delete_my_user()$$, 'dono de uma barbearia', 'dono não exclui a conta com barbearia ativa');
 reset role;
 
-\echo '=== TODOS OS TESTES PASSARAM ==='
+\echo '=== TESTES DO NÚCLEO PASSARAM ==='

@@ -10,7 +10,8 @@ Um único app **ForBarber** nas lojas, feito com [Capacitor](https://capacitorjs
 - **Sua conta:** sair e **excluir a conta**, que as duas lojas exigem.
 
 **Diferenças em relação ao site**
-- O cliente recebe um **lembrete no celular 2 horas antes** de cada horário (notificação local, sem servidor).
+- O cliente recebe **lembretes no celular nos momentos que escolheu** em Minha conta (padrão: 1 dia antes e 2 horas antes). São notificações locais, agendadas no próprio aparelho: sem servidor e chegam mesmo sem internet.
+- A equipe recebe **push de agendamento** (novo, remarcado, alterado, cancelado) mesmo com o app fechado, depois de configurar o Firebase e a Apple (README principal, "Avisos no celular da equipe"). Tocar no aviso abre a agenda com o horário.
 - O painel tem o botão "Outras barbearias" e o menu do site tem "Trocar de barbearia".
 - **Assinatura:** no app o dono só vê a situação do plano. Pagar e trocar de plano fica no site, porque a Apple obriga a usar o pagamento dela para assinaturas vendidas dentro do app.
 - **Criar barbearia:** abre no navegador (`webUrl` + `criar.html`). Assim toda conta criada dentro do app pode ser excluída no próprio app.
@@ -55,6 +56,10 @@ Sem Mac, o GitHub compila os dois a cada push (workflow **App iOS e Android**, e
    - política de privacidade e coleta de dados;
    - nas notas: "Toque em *Abrir a demonstração* para testar sem cadastro" e um login de equipe de teste.
 
+## Push da equipe: o que fica no app
+- `android/app/google-services.json` (do Firebase). Sem ele o build passa, mas deixe `push: false` no `config.js`: registrar o celular sem o Firebase fecha o app Android.
+- iPhone: capacidade **Push Notifications** no Xcode (o `AppDelegate.swift` já repassa o token para o Capacitor).
+- Canal de notificação do Android: `agendamentos` (criado pelo app ao ativar os avisos).
+
 ## Ainda não incluído
-- **Push do servidor** ("novo agendamento" no celular do barbeiro): precisa de Firebase (Android), chave APNs (iOS) e uma função no Supabase para enviar.
 - **Abrir links do WhatsApp direto no app** (App Links / Universal Links): precisa do domínio definitivo para publicar os arquivos de verificação.

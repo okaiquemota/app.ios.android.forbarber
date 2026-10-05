@@ -28,6 +28,11 @@
     salesWhatsapp: '5516982157266',
     salesUrl: 'https://movcode.com.br/sistema-para-barbearia',
 
+    // Avisos no celular da equipe (novo agendamento, remarcação, cancelamento).
+    // Ligue só depois de configurar o Firebase e a chave da Apple (ver README):
+    // sem o google-services.json, o app Android fecha ao tentar registrar.
+    push: false,
+
     // Endereço onde este sistema está publicado (ex.: https://app.forbarber.com.br/).
     // O app de celular usa para os links que saem dele: e-mails, WhatsApp, compartilhar.
     webUrl: '',

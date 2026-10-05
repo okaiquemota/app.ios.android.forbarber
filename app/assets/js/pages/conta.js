@@ -38,8 +38,9 @@ window.App.ready(function () {
   function renderUpcoming() {
     const list = db.appointments({ clientId: userId }).filter(isUpcoming).sort(db.byDateTime);
     const limit = db.settings().cancelLimit;
+    const remind = App.reminders ? App.reminders.cardHTML(user()) : '';
     $('#panel-agendamentos').innerHTML = list.length
-      ? html`<div class="appt-cards">${list.map((a) => {
+      ? html`${remind}<div class="appt-cards">${list.map((a) => {
           const b = db.barber(a.barberId) || { name: 'Equipe' };
           const d = U.parseDate(a.date);
           const can = B.canClientCancel(a);
@@ -69,8 +70,8 @@ window.App.ready(function () {
               </div>
             </article>`;
         })}</div>`
-      : UI.empty('bi-calendar-plus', 'Nenhum horário marcado', 'Deixe o próximo corte agendado e garanta o horário que você prefere.',
-          html`<a class="btn btn-primary" href="agendar.html">Agendar agora</a>`);
+      : html`${remind}${UI.empty('bi-calendar-plus', 'Nenhum horário marcado', 'Deixe o próximo corte agendado e garanta o horário que você prefere.',
+          html`<a class="btn btn-primary" href="agendar.html">Agendar agora</a>`)}`;
     const waits = App.waitlist.open().filter((w) => w.clientId === userId);
     if (waits.length) {
       $('#panel-agendamentos').insertAdjacentHTML('beforeend', html`
@@ -370,6 +371,7 @@ window.App.ready(function () {
     }
     const reviewBtn = e.target.closest('[data-review]');
     if (reviewBtn) openReview(db.get('appointments', reviewBtn.dataset.review));
+    if (e.target.closest('[data-reminders]')) App.reminders.openSettings(user(), { onSave: renderUpcoming });
   });
 
   function renderAll() {

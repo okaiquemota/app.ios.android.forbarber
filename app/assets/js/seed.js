@@ -51,6 +51,7 @@
     pixKey: '',
     pixName: '',
     pixCity: '',
+    productCommission: 10, // % do barbeiro sobre os produtos que ele vende
     primaryColor: '#111827',
     fontStyle: 'classico',
     logo: '',
@@ -497,7 +498,7 @@
       delete c.isKid;
     });
 
-    return {
+    return addProducts({
       version: 1,
       meta: { seedBase: todayIso, lastNormalized: todayIso, createdAt: now.toISOString() },
       settings,
@@ -512,8 +513,69 @@
       subscriptions,
       subPayments,
       waitlist,
-    };
+    }, now);
   }
 
-  App.seed = { create, DEFAULT_SETTINGS, CATEGORIES, TEAM_COLORS, DEMO_PASSWORD, hashPassword };
+  /* ---------- Produtos e vendas (comanda e balcão) ----------
+     Estoques já "atuais" (alguns baixos, um esgotado) e 60 dias de vendas:
+     parte junto dos atendimentos concluídos, parte avulsa no balcão. */
+  const PRODUCTS = [
+    { id: 'p-pomada', name: 'Pomada modeladora', category: 'Cabelo', price: 45, cost: 22, stock: 14, minStock: 4 },
+    { id: 'p-pomada-seca', name: 'Pomada efeito seco', category: 'Cabelo', price: 48, cost: 24, stock: 3, minStock: 4 },
+    { id: 'p-cera', name: 'Cera capilar', category: 'Cabelo', price: 35, cost: 15, stock: 11, minStock: 3 },
+    { id: 'p-shampoo', name: 'Shampoo antiqueda', category: 'Cabelo', price: 55, cost: 28, stock: 2, minStock: 3 },
+    { id: 'p-oleo', name: 'Óleo para barba', category: 'Barba', price: 39, cost: 17, stock: 9, minStock: 3 },
+    { id: 'p-balm', name: 'Balm para barba', category: 'Barba', price: 42, cost: 19, stock: 6, minStock: 3 },
+    { id: 'p-minoxidil', name: 'Minoxidil 5%', category: 'Barba', price: 89, cost: 52, stock: 0, minStock: 2 },
+    { id: 'p-pente', name: 'Pente de madeira', category: 'Acessórios', price: 25, cost: 8, stock: 20, minStock: 5 },
+  ];
+  function addProducts(data, now = new Date()) {
+    const rnd = U.seededRandom(20261005);
+    const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
+    const todayIso = U.toISODate(now);
+    const from = U.addDays(todayIso, -60);
+    const createdAt = new Date(now.getTime() - 120 * 86400000).toISOString();
+    data.products = PRODUCTS.map((p) => ({ ...p, active: true, createdAt }));
+    // Mais vendidos aparecem mais (pomada e óleo saem muito)
+    const weighted = ['p-pomada', 'p-pomada', 'p-pomada', 'p-oleo', 'p-oleo', 'p-cera', 'p-balm', 'p-pomada-seca', 'p-shampoo', 'p-pente', 'p-minoxidil'];
+    const byId = Object.fromEntries(PRODUCTS.map((p) => [p.id, p]));
+    const line = () => {
+      const p = byId[pick(weighted)];
+      return { productId: p.id, name: p.name, price: p.price, qty: rnd() < 0.12 ? 2 : 1 };
+    };
+    const sales = [];
+    let seq = 0;
+    const add = (v) => {
+      const items = [line()];
+      if (rnd() < 0.18) {
+        const extra = line();
+        if (extra.productId !== items[0].productId) items.push(extra);
+      }
+      sales.push({ id: `v-${++seq}`, items, total: U.sum(items, (i) => i.price * i.qty), status: 'ok', createdBy: null, ...v });
+    };
+    // Comanda: cerca de 1 em cada 9 atendimentos concluídos leva um produto
+    data.appointments
+      .filter((a) => a.status === 'concluido' && a.date >= from && a.date <= todayIso)
+      .forEach((a) => {
+        if (rnd() >= 0.11) return;
+        const end = U.parseDate(a.date);
+        end.setHours(0, U.toMin(a.start) + a.duration, 0, 0);
+        add({ date: a.date, clientId: a.clientId, barberId: a.barberId, appointmentId: a.id, paymentMethod: a.paymentMethod || 'pix', createdAt: end.toISOString() });
+      });
+    // Balcão: venda avulsa, sem horário marcado
+    const barberIds = data.barbers.map((b) => b.id);
+    for (let d = from; d < todayIso; d = U.addDays(d, 1)) {
+      const h = data.settings.hours[U.weekday(d)];
+      if (h.closed || rnd() > 0.2) continue;
+      const at = U.parseDate(d);
+      at.setHours(10 + Math.floor(rnd() * 7), Math.floor(rnd() * 60), 0, 0);
+      add({ date: d, clientId: null, barberId: pick(barberIds), appointmentId: null, paymentMethod: pick(['pix', 'pix', 'credito', 'debito', 'dinheiro']), createdAt: at.toISOString() });
+    }
+    data.sales = sales.sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1));
+    data.settings.productCommission = data.settings.productCommission ?? 10;
+    data.meta = { ...(data.meta || {}), produtos: true };
+    return data;
+  }
+
+  App.seed = { create, addProducts, DEFAULT_SETTINGS, CATEGORIES, TEAM_COLORS, DEMO_PASSWORD, hashPassword };
 })();

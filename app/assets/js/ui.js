@@ -12,7 +12,8 @@
   /* ---------- Toast ---------- */
   let toastRoot = null;
   const TOAST_ICONS = { success: 'bi-check-circle-fill', error: 'bi-exclamation-octagon-fill', info: 'bi-info-circle-fill' };
-  function toast(message, type = 'success', timeout = 4200) {
+  /** onClick: torna o aviso clicável (ex.: abrir o agendamento que acabou de chegar) */
+  function toast(message, type = 'success', timeout = 4200, onClick = null) {
     if (!toastRoot) {
       toastRoot = document.createElement('div');
       toastRoot.className = 'toasts';
@@ -29,9 +30,11 @@
       setTimeout(() => el.remove(), 220);
     };
     const t = setTimeout(close, timeout);
+    if (onClick) el.classList.add('clickable');
     el.addEventListener('click', () => {
       clearTimeout(t);
       close();
+      if (onClick) onClick();
     });
   }
 

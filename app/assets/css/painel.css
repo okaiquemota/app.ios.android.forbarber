@@ -598,3 +598,35 @@ button.side-link { width: 100%; border: 0; background: none; font: inherit; text
 .wait-slots .chip-sm { min-height: 28px; padding: 0.1rem 0.6rem; font-size: 0.82rem; margin: 2px; }
 .wait-row .actions { display: flex; align-items: center; gap: 0.4rem; justify-content: flex-end; }
 @media (max-width: 800px) { .wait-row { grid-template-columns: 1fr; } .wait-row .actions { justify-content: flex-start; } }
+.dropdown-menu .menu-head.spread { flex-wrap: nowrap; }
+.dropdown-menu .menu-head [data-avisos] { width: auto; padding: 0.15rem 0.3rem; gap: 0.3rem; color: var(--text-2); font-weight: 600; }
+.dropdown-menu .menu-head [data-avisos]:hover { color: var(--text); background: none; }
+
+/* ---------- Comanda e estoque ---------- */
+.cart { display: flex; flex-direction: column; gap: var(--sp-2); }
+.cart-lines { list-style: none; display: grid; border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; }
+.cart-lines li { display: flex; align-items: center; gap: var(--sp-3); padding: 0.5rem 0.4rem 0.5rem 0.8rem; background: var(--surface); }
+.cart-lines li + li { border-top: 1px solid var(--line); }
+.cart-lines .grow { display: flex; flex-direction: column; line-height: 1.3; }
+.cart-lines .grow span { font-size: 0.82rem; }
+.cart-lines .qty { display: inline-flex; align-items: center; gap: 0.1rem; }
+.cart-lines .qty .num { min-width: 1.4rem; text-align: center; font-weight: 600; }
+.cart-sub { min-width: 5.5rem; text-align: right; font-weight: 600; }
+.conclude-total { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--line); color: var(--text-2); }
+.conclude-total strong { font-size: 1.5rem; color: var(--text); letter-spacing: -0.02em; }
+.kpi-value.kpi-text { font-size: 1.15rem; line-height: 1.3; }
+.table tr.is-off td { color: var(--text-3); }
+.table tr.is-off td:nth-child(2) { text-decoration: line-through; }
+.table tr.is-off .badge { text-decoration: none; }
+.show-md { display: none; }
+@media (max-width: 760px) {
+  .table .show-md { display: inline; }
+  .table .actions .btn span { display: none; }
+}
+.stock-table th:first-child { width: 100%; }
+@media (max-width: 760px) {
+  .stock-table th, .stock-table td { padding-inline: 0.55rem; }
+  .stock-table th:first-child, .stock-table td:first-child { padding-left: 0.9rem; }
+  .stock-table .actions { gap: 0; }
+  .stock-table .actions .btn { padding-inline: 0.45rem; min-width: 34px; }
+}

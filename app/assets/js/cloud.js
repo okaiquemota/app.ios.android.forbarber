@@ -54,10 +54,12 @@
     subscriptions: { clientId: 'client_id', planId: 'plan_id', status: 'status', startedAt: 'started_at', periodStart: 'period_start', periodEnd: 'period_end', notes: 'notes' },
     subPayments: { subscriptionId: 'subscription_id', clientId: 'client_id', amount: 'amount', method: 'method', paidAt: 'paid_at', periodStart: 'period_start', periodEnd: 'period_end' },
     waitlist: { clientId: 'client_id', date: 'date', period: 'period', serviceIds: 'service_ids', barberId: 'barber_id', notes: 'notes', status: 'status' },
+    products: { name: 'name', category: 'category', price: 'price', cost: 'cost', stock: 'stock', minStock: 'min_stock', active: 'active' },
   };
   const TABLE = {
     services: 'services', barbers: 'barbers', appointments: 'appointments', blocks: 'blocks', messages: 'messages', reviews: 'reviews',
     plans: 'club_plans', subscriptions: 'club_subscriptions', subPayments: 'club_payments', waitlist: 'waitlist',
+    products: 'products',
   };
 
   function toRow(kind, obj) {
@@ -80,7 +82,10 @@
       active: r.active, createdAt: r.created_at, barberId: null, userId: r.user_id,
       passwordHash: r.user_id ? 'conta-online' : null, salt: null,
     }),
-    members: (r) => ({ id: r.user_id, role: r.role, name: r.name, email: r.email, phone: r.phone, barberId: r.barber_id, active: r.active, createdAt: r.created_at, birthday: '', notes: '' }),
+    members: (r) => ({
+      id: r.user_id, role: r.role, name: r.name, email: r.email, phone: r.phone, barberId: r.barber_id, active: r.active, createdAt: r.created_at, birthday: '', notes: '',
+      pushNew: r.push_new !== false, pushCancel: r.push_cancel !== false, pushAll: r.push_all ?? null,
+    }),
     appointments: (r) => ({
       id: r.id, clientId: r.client_id, barberId: r.barber_id, services: r.services || [], date: r.date, start: t5(r.start_time),
       duration: r.duration, total: Number(r.total), status: r.status, paymentMethod: r.payment_method, notes: r.notes || '',
@@ -95,6 +100,12 @@
     subPayments: (r) => ({ id: r.id, subscriptionId: r.subscription_id, clientId: r.client_id, amount: Number(r.amount), method: r.method, paidAt: r.paid_at, periodStart: r.period_start, periodEnd: r.period_end, createdAt: r.created_at }),
     waitlist: (r) => ({ id: r.id, clientId: r.client_id, date: r.date, period: r.period, serviceIds: r.service_ids || [], barberId: r.barber_id, notes: r.notes, status: r.status, createdAt: r.created_at }),
     reviews: (r) => ({ id: r.id, clientId: r.client_id, appointmentId: r.appointment_id, barberId: r.barber_id, name: r.name, rating: r.rating, text: r.text, visible: r.visible, createdAt: r.created_at }),
+    products: (r) => ({ id: r.id, name: r.name, category: r.category, price: Number(r.price), cost: r.cost == null ? null : Number(r.cost), stock: r.stock, minStock: r.min_stock, active: r.active, createdAt: r.created_at }),
+    sales: (r) => ({
+      id: r.id, clientId: r.client_id, barberId: r.barber_id, appointmentId: r.appointment_id, date: r.date, total: Number(r.total),
+      items: (r.items || []).map((i) => ({ productId: i.product_id, name: i.name, price: Number(i.price), qty: i.qty })),
+      paymentMethod: r.payment_method, status: r.status, createdBy: r.created_by, createdAt: r.created_at,
+    }),
   };
 
   /* ---------- Mensagens de erro em português ---------- */
@@ -148,7 +159,7 @@
     const data = {
       version: 1, meta: { cloud: true }, settings,
       services: [], barbers: [], users: [], appointments: [], blocks: [], messages: [], reviews: [],
-      plans: [], subscriptions: [], subPayments: [], waitlist: [],
+      plans: [], subscriptions: [], subPayments: [], waitlist: [], products: [], sales: [],
     };
     const t = App.utils.today();
     const [services, barbers, reviews, plans] = await Promise.all([
@@ -164,7 +175,7 @@
 
     if (me && me.kind === 'staff') {
       const isAdmin = me.user.role === 'admin';
-      const [clients, notes, appts, blocks, members, messages, invites, subs, payments, waits] = await Promise.all([
+      const [clients, notes, appts, blocks, members, messages, invites, subs, payments, waits, products, sales] = await Promise.all([
         selectAll('clients', (q) => q.eq('shop_id', shop.id)),
         selectAll('client_notes', (q) => q.eq('shop_id', shop.id)),
         selectAll('appointments', (q) => q.eq('shop_id', shop.id).gte('date', App.utils.addDays(t, -400))),
@@ -175,7 +186,11 @@
         selectAll('club_subscriptions', (q) => q.eq('shop_id', shop.id)),
         selectAll('club_payments', (q) => q.eq('shop_id', shop.id).gte('paid_at', App.utils.addDays(t, -400))),
         selectAll('waitlist', (q) => q.eq('shop_id', shop.id).gte('date', App.utils.addDays(t, -30))),
+        selectAll('products', (q) => q.eq('shop_id', shop.id).order('name')),
+        selectAll('sales', (q) => q.eq('shop_id', shop.id).gte('date', App.utils.addDays(t, -400))),
       ]);
+      data.products = products.map(FROM.products);
+      data.sales = sales.map(FROM.sales);
       data.subscriptions = subs.map(FROM.subscriptions);
       data.subPayments = payments.map(FROM.subPayments);
       data.waitlist = waits.map(FROM.waitlist);
@@ -263,6 +278,8 @@
       .on('postgres_changes', { event: '*', schema: 'public', table: 'club_subscriptions', filter }, apply('subscriptions', 'subscriptions'))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'club_payments', filter }, apply('subPayments', 'subPayments'))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'club_plans', filter }, apply('plans', 'plans'))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products', filter }, apply('products', 'products'))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sales', filter }, apply('sales', 'sales'))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'client_notes', filter }, (payload) => {
         const row = payload.new;
         if (row && row.client_id && App.db.user(row.client_id)) App.db.applyRemote('users', 'UPDATE', row.client_id, { notes: row.notes });
@@ -384,6 +401,59 @@
     await rpc('update_my_profile', { p_shop: shop.id, p_name: name, p_phone: phone, p_birthday: birthday || null });
     await reload();
   }
+  /** Quando o cliente quer ser lembrado: fica na conta (vale em todas as barbearias e aparelhos) */
+  const reminders = () => (me && me.authUser && (me.authUser.user_metadata || {}).reminders) || null;
+  async function saveReminders(list) {
+    const { data, error } = await sb.auth.updateUser({ data: { reminders: list } });
+    if (error) throw new Error(friendly(error));
+    if (me && data && data.user) me.authUser = data.user;
+  }
+
+  /* ---------- Comanda e estoque (validados no servidor) ---------- */
+  async function refreshProducts(ids) {
+    if (!ids.length) return;
+    const { data, error } = await sb.from('products').select('*').in('id', ids);
+    if (error) throw new Error(friendly(error));
+    data.forEach((r) => App.db.applyRemote('products', 'UPDATE', r.id, FROM.products(r)));
+  }
+  async function registerSale(v, items) {
+    const row = await rpc('register_sale', {
+      p_shop: shop.id,
+      p_items: items.map((i) => ({ product_id: i.productId, qty: i.qty, price: i.price })),
+      p_payment: v.paymentMethod, p_client: v.clientId || null, p_barber: v.barberId || null,
+      p_appointment: v.appointmentId || null, p_date: v.date || null,
+    });
+    const sale = FROM.sales(row);
+    App.db.applyRemote('sales', 'INSERT', sale.id, sale);
+    await refreshProducts(items.map((i) => i.productId));
+    return sale;
+  }
+  async function cancelSale(id) {
+    const sale = FROM.sales(await rpc('cancel_sale', { p_id: id }));
+    App.db.applyRemote('sales', 'UPDATE', sale.id, sale);
+    await refreshProducts(sale.items.map((i) => i.productId));
+  }
+  async function addStock(id, qty) {
+    const p = FROM.products(await rpc('add_stock', { p_product: id, p_qty: qty }));
+    App.db.applyRemote('products', 'UPDATE', p.id, p);
+  }
+
+  /* ---------- Avisos no celular da equipe ---------- */
+  async function registerDevice(token, platform) {
+    await client();
+    await rpc('register_push_device', { p_token: token, p_platform: platform });
+  }
+  async function unregisterDevice(token) {
+    await client();
+    await rpc('unregister_push_device', { p_token: token });
+  }
+  async function savePushPrefs({ pushNew, pushCancel, pushAll }) {
+    const row = await rpc('set_my_push_prefs', { p_shop: shop.id, p_new: pushNew, p_cancel: pushCancel, p_all: pushAll });
+    const user = FROM.members(row);
+    if (me && me.kind === 'staff') me.user = { ...me.user, ...user, email: me.user.email };
+    App.db.applyRemote('users', 'UPDATE', user.id, { pushNew: user.pushNew, pushCancel: user.pushCancel, pushAll: user.pushAll });
+  }
+
   /** Apaga o login de vez, em todas as barbearias (exigência das lojas de apps) */
   async function deleteAccount() {
     await client();
@@ -536,7 +606,8 @@
 
   App.cloud = {
     boot, reload, write, insertNow, saveSettings, rpc, friendly,
-    book, cancelMine, review, updateProfile, deleteAccount, ensureClient,
+    book, cancelMine, review, updateProfile, deleteAccount, ensureClient, reminders, saveReminders,
+    registerDevice, unregisterDevice, savePushPrefs, registerSale, cancelSale, addStock,
     login, register, logout, changePassword, sendReset, setNewPassword, hasRecoverySession,
     invite, cancelInvite, uploadImage,
     slugAvailable, createShop, myShops, session, client,

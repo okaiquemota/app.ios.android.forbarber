@@ -1276,3 +1276,38 @@ a.member .member-role {
   .wizard-nav [data-confirm] { order: -1; flex: 1 1 100%; }
   .wizard-nav [data-back] { margin-inline: auto; }
 }
+
+/* ---------- Lembretes do cliente ---------- */
+.remind-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+  margin-bottom: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.remind-card .grow { display: flex; flex-direction: column; gap: 0.1rem; }
+.remind-card .grow span { font-size: var(--fs-sm); color: var(--text-2); line-height: 1.45; }
+.remind-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+  font-size: 1.15rem;
+}
+.remind-line { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; font-size: var(--fs-sm); color: var(--text-2); }
+.remind-line i { color: var(--primary-strong); }
+.remind-line .link { font-weight: 600; }
+.remind-custom { margin-top: var(--sp-4); }
+.remind-custom .cluster-sm { flex-wrap: wrap; }
+@media (max-width: 520px) {
+  .remind-card { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+  .remind-card .btn { grid-column: 2; justify-self: start; }
+}

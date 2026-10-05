@@ -894,3 +894,8 @@ html.is-native .mobile-nav { top: calc(var(--header-h) + var(--safe-top)); }
 .club-plan li { display: flex; gap: 0.45rem; }
 .club-plan li i { color: var(--success); }
 .club-plan .btn { margin-top: auto; }
+.notice.ok { border-color: color-mix(in srgb, var(--success) 35%, transparent); background: var(--success-soft); }
+.notice.ok > i { color: var(--success); }
+.notice > .grow { min-width: 0; }
+.notice > .btn { flex: 0 0 auto; align-self: center; }
+.toast.clickable { cursor: pointer; }

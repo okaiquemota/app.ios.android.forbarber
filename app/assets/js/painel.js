@@ -23,6 +23,7 @@ window.App.ready(function () {
     { group: 'Gestão', items: [
       { id: 'agendamentos', href: 'agendamentos.html', icon: 'bi-list-check', label: 'Agendamentos' },
       { id: 'clientes', href: 'clientes.html', icon: 'bi-people', label: 'Clientes' },
+      { id: 'produtos', href: 'produtos.html', icon: 'bi-bag', label: 'Produtos', count: () => (user.role === 'admin' ? App.comanda.lowStock().length : 0), countLabel: (c) => `${c} com estoque baixo` },
       { id: 'clube', href: 'clube.html', icon: 'bi-stars', label: 'Clube', admin: true },
       { id: 'servicos', href: 'servicos.html', icon: 'bi-scissors', label: 'Serviços', admin: true },
       { id: 'equipe', href: 'equipe.html', icon: 'bi-person-badge', label: 'Equipe', admin: true },
@@ -125,7 +126,7 @@ window.App.ready(function () {
               const c = i.count ? i.count() : 0;
               return html`<a class="side-link" href="${i.href}" ${i.id === page ? raw('aria-current="page"') : ''}>
                 <i class="bi ${i.icon}" aria-hidden="true"></i><span>${i.label}</span>
-                ${c ? html`<span class="count" aria-label="${c} não lidas">${c}</span>` : ''}</a>`;
+                ${c ? html`<span class="count" aria-label="${i.countLabel ? i.countLabel(c) : `${c} não lidas`}">${c}</span>` : ''}</a>`;
             })}`;
         })}
       </nav>
@@ -156,6 +157,10 @@ window.App.ready(function () {
       const overdue = db.list('subscriptions').filter((x) => App.club.state(x) === 'vencida');
       if (overdue.length) items.push({ icon: 'bi-stars', text: `${overdue.length} ${overdue.length === 1 ? 'assinatura vencida' : 'assinaturas vencidas'}`, sub: 'Clube: cobrar a renovação', href: 'clube.html?f=vencidas' });
     }
+    if (isAdmin) {
+      const low = App.comanda.lowStock();
+      if (low.length) items.push({ icon: 'bi-bag', text: `${low.length} ${low.length === 1 ? 'produto com estoque baixo' : 'produtos com estoque baixo'}`, sub: low.slice(0, 3).map((p) => p.name).join(', '), href: 'produtos.html?f=baixo' });
+    }
     const late = pendingConclusion();
     if (late.length) {
       items.push({
@@ -182,7 +187,7 @@ window.App.ready(function () {
           <i class="bi bi-bell"></i>${n ? html`<span class="dot-count">${n}</span>` : ''}
         </button>
         <div class="dropdown-menu notif-menu" role="menu">
-          <div class="menu-head"><strong>Notificações</strong></div>
+          <div class="menu-head spread"><strong>Notificações</strong><button type="button" class="link text-sm" data-avisos><i class="bi bi-gear" aria-hidden="true"></i> Avisos</button></div>
           ${n
             ? items.map((i) => i.appt
                 ? html`<button type="button" class="notif-item" data-open-appt="${i.appt}" role="menuitem"><i class="bi ${i.icon}"></i><span>${i.text}<small>${i.sub}</small></span></button>`
@@ -269,6 +274,7 @@ window.App.ready(function () {
               ${a.status === 'confirmado' ? html`<li><span class="subtle">Falta pagar no atendimento</span><span class="num">${U.money(App.deposit.remaining(a))}</span></li>` : ''}` : ''}
           </ul>
         </div>
+        ${productsBlock(a)}
         ${a.notes ? html`<div><span class="label">Observações</span><p class="muted">${a.notes}</p></div>` : ''}
         ${c && c.notes ? html`<div class="notice"><i class="bi bi-journal-text"></i><div><strong>Ficha do cliente:</strong> ${c.notes}</div></div>` : ''}
         ${stats ? html`<div class="stat-strip">
@@ -328,38 +334,79 @@ window.App.ready(function () {
 
   const clubPlanName = (a) => ((App.club.plan((db.get('subscriptions', a.subscriptionId) || {}).planId) || {}).name || 'Clube');
 
-  /* ---------- Modal: concluir com forma de pagamento ---------- */
+  /** Produtos vendidos junto com o atendimento (comanda) */
+  function productsBlock(a) {
+    const list = App.comanda.sales({ appointmentId: a.id });
+    if (!list.length) return '';
+    const total = U.sum(list, (x) => x.total);
+    return html`<div>
+      <span class="label">Produtos</span>
+      <ul class="detail-list" style="margin-top:.4rem">
+        ${list.flatMap((x) => x.items).map((i) => html`<li><span>${i.qty > 1 ? `${i.qty}x ` : ''}${i.name}</span><span class="num">${U.money(i.price * i.qty)}</span></li>`)}
+        <li class="strong"><span>Total com produtos</span><span class="num">${U.money(a.total + total)}</span></li>
+      </ul>
+    </div>`;
+  }
+
+  /* ---------- Modal: concluir com forma de pagamento e comanda ---------- */
   function openConclude(a) {
     const paidDep = a.depositStatus === 'pago' ? a.depositAmount || 0 : 0;
+    const due = Math.max(0, Math.round((a.total - paidDep) * 100) / 100);
     const m = UI.modal({
       title: 'Concluir atendimento',
-      size: 'sm',
       body: html`
         <p class="muted">${clientName(a.clientId)} · ${servicesText(a)}</p>
         ${a.subscriptionId ? html`<div class="notice"><i class="bi bi-stars"></i><div>Atendimento do <strong>${clubPlanName(a)}</strong>: os serviços do plano já estão pagos na mensalidade.</div></div>` : ''}
         ${paidDep ? html`<div class="notice"><i class="bi bi-qr-code"></i><div>Sinal de <strong>${U.money(paidDep)}</strong> já pago por Pix. Cobre só o restante.</div></div>` : ''}
         ${a.depositStatus === 'pendente' ? html`<div class="notice warn"><i class="bi bi-hourglass-split"></i><div>O sinal de ${U.money(a.depositAmount)} não foi marcado como pago. Se o cliente pagou, ajuste o valor abaixo.</div></div>` : ''}
+        <div class="field">
+          <label class="label" for="pay-total">${paidDep ? 'Serviços: valor cobrado agora (R$)' : 'Serviços: valor cobrado (R$)'}</label>
+          <input class="input" id="pay-total" type="number" inputmode="decimal" step="0.01" min="0" value="${due}">
+          <span class="help">Ajuste se houve desconto ou cortesia do cartão fidelidade.</span>
+        </div>
+        <div class="field">
+          <span class="label">Produtos <span class="label-hint">(comanda)</span></span>
+          <div id="conclude-cart"></div>
+        </div>
         <fieldset class="field">
           <legend class="label">Forma de pagamento</legend>
           <div class="pay-options">
             ${Object.entries(B.PAYMENTS).map(([k, p], i) => html`<label class="pay-option"><input type="radio" name="pay" value="${k}" ${i === 0 ? raw('checked') : ''}><i class="bi ${p.icon}" aria-hidden="true"></i>${p.label}</label>`)}
           </div>
         </fieldset>
-        <div class="field">
-          <label class="label" for="pay-total">${paidDep ? 'Valor cobrado agora (R$)' : 'Valor cobrado (R$)'}</label>
-          <input class="input" id="pay-total" type="number" inputmode="decimal" step="0.01" min="0" value="${Math.max(0, Math.round((a.total - paidDep) * 100) / 100)}">
-          <span class="help">Ajuste se houve desconto ou cortesia do cartão fidelidade.</span>
-        </div>`,
+        <div class="conclude-total"><span>Total a cobrar</span><strong class="num" id="conclude-sum"></strong></div>`,
       footer: html`<button type="button" class="btn btn-ghost" data-close>Voltar</button>
         <button type="button" class="btn btn-success" data-ok><i class="bi bi-check2-circle"></i>Concluir</button>`,
     });
-    m.el.querySelector('[data-ok]').addEventListener('click', () => {
+    const totalInput = m.body.querySelector('#pay-total');
+    const sumEl = m.body.querySelector('#conclude-sum');
+    const cart = App.comanda.cart(m.body.querySelector('#conclude-cart'), { onChange: () => refresh() });
+    function refresh() {
+      const svc = Number(totalInput.value) || 0;
+      const prod = cart.total();
+      sumEl.textContent = prod ? `${U.money(svc + prod)}` : U.money(svc);
+      sumEl.title = prod ? `${U.money(svc)} de serviços + ${U.money(prod)} de produtos` : '';
+    }
+    totalInput.addEventListener('input', refresh);
+    refresh();
+    m.el.querySelector('[data-ok]').addEventListener('click', async (e) => {
       const method = m.body.querySelector('input[name="pay"]:checked').value;
-      const total = Number(m.body.querySelector('#pay-total').value);
-      if (!(total >= 0)) return UI.setError(m.body.querySelector('#pay-total'), 'Informe um valor válido.');
+      const total = Number(totalInput.value);
+      if (!(total >= 0) || totalInput.value === '') return UI.setError(totalInput, 'Informe um valor válido.');
+      const items = cart.items();
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      try {
+        // Produtos primeiro: se o estoque recusar, o atendimento continua aberto
+        if (items.length) await App.comanda.register({ items, paymentMethod: method, clientId: a.clientId, barberId: a.barberId, appointmentId: a.id, date: a.date });
+      } catch (err) {
+        btn.disabled = false;
+        return UI.toast(err.message, 'error');
+      }
       db.update('appointments', a.id, { status: 'concluido', paymentMethod: method, total: Math.round((total + paidDep) * 100) / 100 });
       m.close();
-      UI.toast(`Atendimento concluído · ${U.money(total)} no ${B.PAYMENTS[method].label.toLowerCase()}${paidDep ? ` + sinal de ${U.money(paidDep)}` : ''}.`);
+      const prod = cart.total();
+      UI.toast(`Atendimento concluído · ${U.money(total + prod)} no ${B.PAYMENTS[method].label.toLowerCase()}${prod ? ` (${U.money(prod)} de produtos)` : ''}${paidDep ? ` + sinal de ${U.money(paidDep)}` : ''}.`);
     });
   }
 
@@ -920,7 +967,7 @@ window.App.ready(function () {
   App.painel = {
     user, isAdmin, scopeBarberId, me,
     clientName, servicesText, endOf, apptState, pendingConclusion, waReminderLink, period, barberAvatar, apptRowHTML,
-    openAppointment, openAppointmentForm, openConclude, openClientForm, openClientDetails, openBlockForm, openBlock,
+    openAppointment, openAppointmentForm, openConclude, openClientForm, openClientDetails, openBlockForm, openBlock, clientPicker,
     /** Re-renderiza a página quando os dados mudam (nesta aba ou em outra) */
     onChange: (fn) => db.subscribe(() => fn()),
   };
