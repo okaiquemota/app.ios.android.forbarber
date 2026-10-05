@@ -523,7 +523,7 @@ window.App.ready(function () {
               </div>` : ''}
           </div>
           <div class="field">
-            <label class="label" for="a-notes">Observações <span class="opt">(opcional)</span></label>
+            <label class="label" for="a-notes">Observações <span class="label-hint">(opcional)</span></label>
             <textarea class="textarea" id="a-notes" rows="2" placeholder="Ex.: cliente pediu máquina 1 nas laterais">${editing ? editing.notes : ''}</textarea>
           </div>
           <div class="notice" id="a-summary"></div>
@@ -663,9 +663,9 @@ window.App.ready(function () {
         <form id="client-form" class="form-grid" novalidate>
           <div class="field full"><label class="label" for="cf-name">Nome completo</label><input class="input" id="cf-name" name="name" value="${c ? c.name : ''}" required></div>
           <div class="field"><label class="label" for="cf-phone">WhatsApp</label><input class="input" id="cf-phone" name="phone" type="tel" inputmode="tel" value="${c ? c.phone : ''}" placeholder="(16) 98765-4321" required></div>
-          <div class="field"><label class="label" for="cf-birthday">Aniversário <span class="opt">(opcional)</span></label><input class="input" id="cf-birthday" name="birthday" type="date" value="${c ? c.birthday : ''}"></div>
-          <div class="field full"><label class="label" for="cf-email">E-mail <span class="opt">(opcional)</span></label><input class="input" id="cf-email" name="email" type="email" value="${c ? c.email : ''}"></div>
-          <div class="field full"><label class="label" for="cf-notes">Ficha / preferências <span class="opt">(opcional)</span></label><textarea class="textarea" id="cf-notes" name="notes" rows="3" placeholder="Ex.: máquina 2 nas laterais, alergia a pós-barba com álcool">${c ? c.notes : ''}</textarea></div>
+          <div class="field"><label class="label" for="cf-birthday">Aniversário <span class="label-hint">(opcional)</span></label><input class="input" id="cf-birthday" name="birthday" type="date" value="${c ? c.birthday : ''}"></div>
+          <div class="field full"><label class="label" for="cf-email">E-mail <span class="label-hint">(opcional)</span></label><input class="input" id="cf-email" name="email" type="email" value="${c ? c.email : ''}"></div>
+          <div class="field full"><label class="label" for="cf-notes">Ficha / preferências <span class="label-hint">(opcional)</span></label><textarea class="textarea" id="cf-notes" name="notes" rows="3" placeholder="Ex.: máquina 2 nas laterais, alergia a pós-barba com álcool">${c ? c.notes : ''}</textarea></div>
         </form>`,
       footer: html`<button type="button" class="btn btn-ghost" data-close>Cancelar</button><button type="button" class="btn btn-primary" data-save><i class="bi bi-check2"></i>Salvar</button>`,
     });

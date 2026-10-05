@@ -39,19 +39,23 @@ window.App.ready(function () {
     const next = B.nextAvailable({ duration: svc.duration });
     const barber = next && db.barber(next.barberId);
     el.innerHTML = html`
-      <span class="eyebrow plain"><i class="bi bi-lightning-charge-fill" aria-hidden="true"></i>Próximo horário livre</span>
-      <label class="field">
-        <span class="sr-only">Serviço</span>
-        <select class="select" id="ns-service">
-          ${services.map((s) => html`<option value="${s.id}" ${s.id === nextService ? raw('selected') : ''}>${s.name} · ${U.fmtDuration(s.duration)} · ${U.money(s.price)}</option>`)}
-        </select>
-      </label>
+      <div class="next-slot-head">
+        <h2 class="side-card-title"><i class="bi bi-lightning-charge-fill" aria-hidden="true"></i>Próximo horário livre</h2>
+        <label class="next-slot-service">
+          <span class="sr-only">Serviço</span>
+          <select class="select input-sm" id="ns-service">
+            ${services.map((s) => html`<option value="${s.id}" ${s.id === nextService ? raw('selected') : ''}>${s.name} · ${U.fmtDuration(s.duration)} · ${U.money(s.price)}</option>`)}
+          </select>
+        </label>
+      </div>
       ${next && barber
         ? html`
-          <div class="next-slot-when">${U.fmtDateHuman(next.date)} às ${next.time}<small>${U.fmtDateLong(next.date)}</small></div>
           <div class="next-slot-who">
             ${UI.avatar(barber.name, { color: barber.color, photo: barber.photo })}
-            <div><strong>${barber.name}</strong><span class="text-sm subtle">${barber.specialty}</span></div>
+            <div class="grow">
+              <strong class="next-slot-when">${U.fmtDateHuman(next.date)} às ${next.time}</strong>
+              <span class="text-sm subtle">${U.fmtDateLong(next.date)} · ${barber.name}</span>
+            </div>
           </div>
           <a class="btn btn-primary btn-block" href="agendar.html?servico=${svc.id}&profissional=${barber.id}&data=${next.date}&hora=${next.time}">
             <i class="bi bi-check2"></i>Reservar este horário</a>`
@@ -73,11 +77,10 @@ window.App.ready(function () {
     const list = db.barbers({ active: true });
     $('#home-team').innerHTML = list.length
       ? html`${list.map((b) => html`
-        <a class="member" href="agendar.html?profissional=${b.id}">
+        <a class="member" href="agendar.html?profissional=${b.id}" aria-label="Agendar com ${b.name}">
           ${UI.avatar(b.name, { color: b.color, photo: b.photo, size: 'lg' })}
           <span class="member-name">${b.name}</span>
           <span class="member-role">${b.specialty || b.title}</span>
-          <span class="member-cta">Agendar</span>
         </a>`)}`
       : UI.empty('bi-people', 'Equipe em atualização', 'Em breve você conhece nossos profissionais por aqui.');
   }

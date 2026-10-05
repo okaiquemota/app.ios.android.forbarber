@@ -204,7 +204,7 @@ window.App.ready(function () {
             <input class="input" type="date" id="wl-date" name="date" value="${date}" min="${U.today()}" max="${U.addDays(U.today(), Number(db.settings().bookingWindow) || 30)}" required></div>
           <div class="field"><label class="label" for="wl-period">Período</label>
             <select class="select" id="wl-period" name="period">${Object.entries(P).map(([k, v]) => html`<option value="${k}">${v.label}</option>`)}</select></div>
-          <div class="field"><label class="label" for="wl-notes">Recado <span class="opt">(opcional)</span></label>
+          <div class="field"><label class="label" for="wl-notes">Recado <span class="label-hint">(opcional)</span></label>
             <input class="input" id="wl-notes" name="notes" maxlength="200" placeholder="Ex.: saio do trabalho às 17h"></div>
           <p class="text-sm subtle">${selectedServices().length ? `Serviços: ${selectedServices().map((x) => x.name).join(' + ')}` : 'Serviço a combinar'} · ${state.barberId && state.barberId !== 'any' ? barberLabel() : 'qualquer profissional'}</p>
         </form>`,
@@ -284,8 +284,9 @@ window.App.ready(function () {
 
   function slotsHTML() {
     if (!state.date) return UI.empty('bi-calendar-x', 'Sem horários livres nos próximos dias', 'Tente outro profissional ou chame a gente no WhatsApp que encaixamos você.');
-    const slots = slotList(state.date);
-    if (!slots.some((s) => s.available)) return UI.empty('bi-calendar-x', 'Dia sem horários livres', 'Escolha outro dia acima.');
+    // Só os horários livres: ocupado ou já passado não ajuda a escolher
+    const slots = slotList(state.date).filter((s) => s.available);
+    if (!slots.length) return UI.empty('bi-calendar-x', 'Dia sem horários livres', 'Escolha outro dia acima.');
     const groups = [
       { label: 'Manhã', icon: 'bi-sunrise', items: slots.filter((s) => U.toMin(s.time) < 720) },
       { label: 'Tarde', icon: 'bi-sun', items: slots.filter((s) => U.toMin(s.time) >= 720 && U.toMin(s.time) < 1080) },
@@ -297,12 +298,9 @@ window.App.ready(function () {
           <div class="slot-group">
             <h3 class="group-label"><i class="bi ${g.icon}" aria-hidden="true"></i>${g.label}</h3>
             <div class="slots">
-              ${g.items.map((s) => html`<button type="button" class="slot" data-time="${s.time}" aria-pressed="${s.time === state.time}" ${s.available ? '' : raw('disabled')} aria-label="${s.time}${s.available ? '' : ', ocupado'}">${s.time}</button>`)}
+              ${g.items.map((s) => html`<button type="button" class="slot" data-time="${s.time}" aria-pressed="${s.time === state.time}">${s.time}</button>`)}
             </div>
           </div>`)}
-      </div>
-      <div class="legend-inline" aria-hidden="true">
-        <span><span class="sw"></span>Livre</span><span><span class="sw sel"></span>Selecionado</span><span><span class="sw off"></span>Ocupado</span>
       </div>`;
   }
 
@@ -410,7 +408,7 @@ window.App.ready(function () {
           <button type="button" class="btn btn-ghost btn-sm" data-switch-account>Não é você?</button>
         </div>
         <div class="field">
-          <label class="label" for="notes">Recado para o barbeiro <span class="opt">(opcional)</span></label>
+          <label class="label" for="notes">Recado para o barbeiro <span class="label-hint">(opcional)</span></label>
           <textarea class="textarea" id="notes" name="notes" rows="3" maxlength="300" placeholder="Ex.: quero manter o volume em cima">${state.notes}</textarea>
         </div>
       </div>

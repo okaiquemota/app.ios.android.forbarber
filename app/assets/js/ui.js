@@ -296,12 +296,30 @@
     };
   }
 
+  const inkFor = (hex) => (U.luminance(hex) > 0.5 ? '#111827' : '#ffffff');
+
+  /** Cor da barbearia no modo escuro: preto e cinza escuro viram quase branco
+      (como os apps do iPhone fazem); cores escuras clareiam até aparecer bem
+      sobre o fundo escuro. */
+  function darkVariant(hex) {
+    const rgb = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+    if (Math.max(...rgb) - Math.min(...rgb) < 40 && U.luminance(hex) < 0.4) return '#f4f4f5';
+    const toHex = (t) => `#${rgb.map((c) => Math.round(c + (255 - c) * t).toString(16).padStart(2, '0')).join('')}`;
+    let out = hex;
+    // contraste mínimo de 3:1 contra a superfície escura (#16181d)
+    for (let t = 0.1; (U.luminance(out) + 0.05) / 0.06 < 3 && t <= 1; t += 0.1) out = toHex(t);
+    return out;
+  }
+
   function applyBranding() {
     const s = App.db.settings();
     const root = document.documentElement;
     const color = /^#[0-9a-f]{6}$/i.test(s.primaryColor || '') ? s.primaryColor : '#111827';
-    root.style.setProperty('--primary', color);
-    root.style.setProperty('--primary-ink', U.luminance(color) > 0.5 ? '#111827' : '#ffffff');
+    const dark = darkVariant(color);
+    root.style.setProperty('--brand', color);
+    root.style.setProperty('--brand-ink', inkFor(color));
+    root.style.setProperty('--brand-dark', dark);
+    root.style.setProperty('--brand-dark-ink', inkFor(dark));
     root.dataset.font = s.fontStyle || 'classico';
 
     const b = bindings(s);

@@ -4,6 +4,23 @@
    e uma cor de destaque que cada barbearia escolhe em Configurações.
    ========================================================================== */
 
+/* Fontes no próprio app: abrem sem internet (app nativo e instalável) e
+   sem pedir nada ao Google. Subconjunto latino, que cobre o português. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../vendor/fonts/inter-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../vendor/fonts/playfair-display-latin-700.woff2') format('woff2');
+}
+
 :root {
   color-scheme: light;
 
@@ -18,14 +35,21 @@
   --text: #111827;
   --text-2: #4b5563;
   --text-3: #6b7280;
+  --line-hover: #b9bfca;
+  --hover: rgba(17, 24, 39, 0.03);
+  --glass: rgba(255, 255, 255, 0.92);
+  --toast-bg: #111827;
+  --club-bg: #fef3c7;
+  --club-fg: #92400e;
 
-  /* Cor da barbearia (Configurações > Aparência) */
-  --primary: #2563eb;
-  --primary-ink: #ffffff;
+  /* Cor da barbearia (Configurações > Aparência). O ui.js põe a cor em
+     --brand e a versão para o modo escuro em --brand-dark. */
+  --primary: var(--brand, #2563eb);
+  --primary-ink: var(--brand-ink, #ffffff);
   --primary-hover: color-mix(in oklab, var(--primary) 88%, white);
   --primary-strong: color-mix(in oklab, var(--primary) 78%, black);
-  --primary-soft: color-mix(in srgb, var(--primary) 10%, white);
-  --primary-line: color-mix(in srgb, var(--primary) 35%, white);
+  --primary-soft: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  --primary-line: color-mix(in srgb, var(--primary) 35%, var(--surface));
 
   /* Status */
   --success: #16a34a;
@@ -76,6 +100,49 @@
   --gutter: 1rem;
   --header-h: 64px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Modo escuro: segue o aparelho da pessoa */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --bg: #0b0c0f;
+    --bg-raised: #121317;
+    --surface: #16181d;
+    --surface-2: #1d2026;
+    --surface-3: #2a2e36;
+    --line: #24272e;
+    --line-strong: #343943;
+    --text: #f3f4f6;
+    --text-2: #b6bbc5;
+    --text-3: #8b919d;
+    --line-hover: #4a505c;
+    --hover: rgba(255, 255, 255, 0.04);
+    --glass: rgba(18, 19, 23, 0.9);
+    --toast-bg: #2a2e36;
+    --club-bg: #3a2a0c;
+    --club-fg: #fcd34d;
+
+    --primary: var(--brand-dark, var(--brand, #60a5fa));
+    --primary-ink: var(--brand-dark-ink, var(--brand-ink, #0b0c0f));
+    --primary-strong: color-mix(in oklab, var(--primary) 82%, white);
+    --primary-soft: color-mix(in srgb, var(--primary) 14%, var(--surface));
+    --primary-line: color-mix(in srgb, var(--primary) 40%, var(--surface));
+
+    --success: #22c55e;
+    --success-soft: #11261a;
+    --danger: #f87171;
+    --danger-soft: #2c1618;
+    --warning: #f59e0b;
+    --warning-soft: #2b2110;
+    --info: #60a5fa;
+    --info-soft: #13223a;
+    --neutral-soft: #1d2026;
+
+    --shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.35);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+  }
 }
 
 /* Estilos de título selecionáveis no painel */
@@ -295,7 +362,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: var(--sp-5) 0; }
   font-weight: 600;
   color: var(--text-2);
 }
-.label .opt { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--text-3); }
+.label .label-hint { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--text-3); }
 
 .input,
 .select,
@@ -312,7 +379,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: var(--sp-5) 0; }
 }
 .textarea { min-height: 110px; resize: vertical; line-height: 1.5; }
 .input::placeholder, .textarea::placeholder { color: var(--text-3); }
-.input:hover, .select:hover, .textarea:hover { border-color: #b9bfca; }
+.input:hover, .select:hover, .textarea:hover { border-color: var(--line-hover); }
 .input:focus, .select:focus, .textarea:focus {
   outline: none;
   border-color: var(--primary);
@@ -331,6 +398,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: var(--sp-5) 0; }
 .select option { background: var(--surface); color: var(--text); }
 
 .input-sm { min-height: 38px; padding: 0.4rem 0.7rem; font-size: 0.95rem; }
+.select.input-sm { padding-right: 2.2rem; }
 
 .input-icon { position: relative; }
 .input-icon > i {
@@ -514,7 +582,7 @@ input[type='checkbox'], input[type='radio'] { accent-color: var(--primary); widt
   vertical-align: middle;
 }
 .table tbody tr { transition: background-color 0.12s; }
-.table tbody tr:hover { background: rgba(17, 24, 39, 0.03); }
+.table tbody tr:hover { background: var(--hover); }
 .table .num, .table .right { text-align: right; }
 .table tfoot td { font-weight: 700; border-bottom: 0; border-top: 1px solid var(--line-strong); }
 
@@ -585,7 +653,7 @@ dialog.modal::backdrop { background: rgba(17, 24, 39, 0.45); backdrop-filter: bl
   width: min(420px, 100%);
   padding: 0.85rem 1rem;
   border-radius: 8px;
-  background: #111827;
+  background: var(--toast-bg);
   color: #f9fafb;
   border: 0;
   box-shadow: var(--shadow);
@@ -807,7 +875,7 @@ html.is-native .mobile-nav { top: calc(var(--header-h) + var(--safe-top)); }
 @media (max-width: 520px) { .pix-box { grid-template-columns: 1fr; justify-items: center; } .pix-body { align-items: stretch; } }
 
 /* ---------- Clube de assinatura (selo e cartões) ---------- */
-.club-tag { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.15rem 0.55rem; border-radius: 99px; background: #fef3c7; color: #92400e; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+.club-tag { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.15rem 0.55rem; border-radius: 99px; background: var(--club-bg); color: var(--club-fg); font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
 .club-tag i { font-size: 0.85em; }
 .deposit-tag { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.15rem 0.55rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
 .deposit-tag.pendente { background: var(--warning-soft); color: var(--warning); }

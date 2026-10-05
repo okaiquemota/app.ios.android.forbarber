@@ -26,9 +26,8 @@ window.App.ready(function () {
     const stats = db.clientStats(u.id);
     const since = U.parseDate(u.createdAt.slice(0, 10));
     $('#account-head').innerHTML = html`
-      ${UI.avatar(u.name, { size: 'xl' })}
+      ${UI.avatar(u.name, { size: 'lg' })}
       <div class="grow">
-        <span class="eyebrow plain">Minha conta</span>
         <h1>Olá, ${U.firstName(u.name)}</h1>
         <p class="muted">Cliente desde ${U.MONTHS[since.getMonth()]} de ${since.getFullYear()} · ${U.plural(stats.visits, 'atendimento', 'atendimentos')}</p>
       </div>

@@ -2,7 +2,7 @@
 
 Sistema para barbearias vendido como assinatura (estilo AppBarber): cada barbearia cria a conta sozinha, ganha 14 dias grátis e um endereço próprio (`seudominio/nome-da-barbearia/`) com site, agendamento online, app instalável e painel da equipe.
 
-Visual de app de agendamento (como AppBarber, Booksy e Trinks): fundo claro, cartões brancos, fonte Inter, perfil da barbearia com capa, nota e abas, e barra de navegação embaixo no celular. Cada barbearia escolhe a cor, o logo e a foto de capa; o ForBarber usa o vermelho e o poste de barbeiro nas telas dele (criar, entrar, app).
+Visual de app de agendamento (como AppBarber, Booksy e Trinks): cartões limpos, fonte Inter (dentro do app, sem depender do Google), perfil da barbearia com capa, nota e abas, e barra de navegação embaixo no celular. **Modo escuro automático**, seguindo o aparelho; a cor da barbearia é ajustada sozinha para continuar legível no escuro (preto vira quase branco, como nos apps do iPhone). Cada barbearia escolhe a cor, o logo e a foto de capa; o ForBarber usa o vermelho e o poste de barbeiro nas telas dele (criar, entrar, app).
 
 A página de vendas fica em outro repositório: [movcodebr/site.produto.forbarber](https://github.com/movcodebr/site.produto.forbarber). Aqui fica só o sistema; o `index.html` da raiz redireciona para o site (`siteUrl` no `config.js`).
 

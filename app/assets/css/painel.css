@@ -99,7 +99,7 @@ button.side-link { width: 100%; border: 0; background: none; font: inherit; text
   gap: var(--sp-3);
   min-height: 64px;
   padding: 0.5rem var(--gutter);
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--glass);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
@@ -222,7 +222,7 @@ button.side-link { width: 100%; border: 0; background: none; font: inherit; text
   transition: background-color 0.12s;
 }
 .appt-row:last-child { border-bottom: 0; }
-.appt-row:hover { background: rgba(17, 24, 39, 0.03); }
+.appt-row:hover { background: var(--hover); }
 .appt-row .time { font-family: var(--font-display); font-size: 1.28rem; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; }
 .appt-row .time small { display: block; font-size: 0.78rem; font-weight: 500; color: var(--text-3); }
 .appt-row .who { min-width: 0; }
@@ -357,7 +357,7 @@ button.side-link { width: 100%; border: 0; background: none; font: inherit; text
 .agenda-head { display: flex; align-items: center; gap: 0.6rem; min-width: 0; padding: 0.6rem 0.75rem; border-right: 1px solid var(--line); }
 .agenda-head .grow { min-width: 0; }
 .agenda-head strong { display: block; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.agenda-head .grow span { font-size: 0.8rem; color: var(--text-3); }
+.agenda-head .grow span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8rem; color: var(--text-3); }
 .agenda-head.is-today strong { color: var(--primary-strong); }
 .agenda-times { position: sticky; left: 0; z-index: 3; background: var(--surface); border-right: 1px solid var(--line); }
 .agenda-times div { height: var(--slot-h); padding: 0.2rem 0.5rem 0; font-size: 0.75rem; color: var(--text-3); text-align: right; font-variant-numeric: tabular-nums; }
@@ -410,6 +410,14 @@ button.side-link { width: 100%; border: 0; background: none; font: inherit; text
 .agenda-legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem; font-size: 0.84rem; color: var(--text-2); }
 .agenda-legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
 .agenda-legend i { font-size: 0.95rem; }
+/* No celular a legenda ocupa espaço da agenda; o "+" do topo marca horário */
+@media (max-width: 759px) { .agenda-legend { display: none; } }
+@media (max-width: 639px) {
+  .agenda-head { gap: 0.45rem; padding: 0.5rem 0.6rem; }
+  .agenda-head .avatar { --av: 28px; font-size: 0.7rem; }
+  .agenda-head strong { white-space: normal; font-size: 0.9rem; }
+  .agenda-head .grow span { display: none; }
+}
 
 /* ---------- Cartões de equipe / serviços ---------- */
 .staff-grid { display: grid; gap: var(--sp-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
@@ -494,7 +502,7 @@ button.side-link { width: 100%; border: 0; background: none; font: inherit; text
   text-align: left;
   width: 100%;
 }
-.msg-row:hover { background: rgba(17, 24, 39, 0.03); }
+.msg-row:hover { background: var(--hover); }
 .msg-row .msg-from { display: flex; align-items: center; gap: 0.5rem; }
 .msg-row .msg-subject { color: var(--text-2); }
 .msg-row .msg-snippet { font-size: 0.9rem; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

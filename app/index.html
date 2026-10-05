@@ -5,16 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Grey Barber</title>
   <meta name="description" content="Barbearia em Ribeirão Preto: corte, barba e acabamento com hora marcada. Agende online em menos de um minuto.">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#121317" media="(prefers-color-scheme: dark)">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Grey Barber · Barbearia">
   <meta property="og:description" content="Tradição e estilo em cada detalhe. Agende seu horário online.">
   <meta property="og:image" content="assets/img/ambiente.jpg">
   <link rel="icon" type="image/png" href="assets/img/favicon.png">
   <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@700&family=Rye&display=swapfamily=Playfair+Display:wght@700https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@700&family=Rye&display=swapdisplay=swap">
+  <link rel="preload" href="assets/vendor/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css">
   <link rel="stylesheet" href="assets/css/base.css">
   <link rel="stylesheet" href="assets/css/site.css">
@@ -68,12 +67,12 @@
             <h2 class="profile-h2" id="clube-title">Clube de assinatura</h2>
             <p class="muted text-sm">Pague por mês e venha quantas vezes o plano permitir. Agendou, está incluso.</p>
           </div>
-          <div class="club-plans" id="home-club"></div>
+          <div class="club-plans scroller" id="home-club"></div>
         </section>
 
         <section class="profile-section" id="equipe" aria-labelledby="equipe-title">
           <h2 class="profile-h2" id="equipe-title">Profissionais</h2>
-          <div class="team" id="home-team"></div>
+          <div class="team scroller" id="home-team"></div>
         </section>
 
         <section class="profile-section" id="avaliacoes" aria-labelledby="avaliacoes-title">
@@ -81,7 +80,7 @@
             <h2 class="profile-h2" id="avaliacoes-title">Avaliações</h2>
             <div class="rating-summary" id="rating-summary"></div>
           </div>
-          <div class="reviews" id="home-reviews"></div>
+          <div class="reviews scroller" id="home-reviews"></div>
         </section>
 
         <section class="profile-section" id="sobre" aria-labelledby="sobre-title">
