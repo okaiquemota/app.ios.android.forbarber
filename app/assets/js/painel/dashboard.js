@@ -13,6 +13,9 @@ window.App.ready(function () {
   const scope = P.scopeBarberId || undefined;
 
   const concluded = (from, to) => db.appointments({ from, to, status: 'concluido', barberId: scope });
+  // Produtos vendidos (balcão e comanda) também são faturamento
+  const sold = (from, to) => App.comanda.sales({ from, to, barberId: scope });
+  const soldTotal = (from, to) => U.sum(sold(from, to), (x) => x.total);
 
   function delta(cur, prev, label) {
     if (!prev) return html`<span>${label}</span>`;
@@ -42,7 +45,7 @@ window.App.ready(function () {
     const doneToday = todays.filter((a) => a.status === 'concluido');
     const confirmedToday = todays.filter((a) => a.status === 'confirmado');
     const active = doneToday.length + confirmedToday.length;
-    const realized = U.sum(doneToday, (a) => a.total);
+    const realized = U.sum(doneToday, (a) => a.total) + soldTotal(t, t);
     const expected = realized + U.sum(confirmedToday, (a) => a.total);
 
     // Mês até hoje vs. mesmo intervalo do mês anterior
@@ -52,8 +55,8 @@ window.App.ready(function () {
     const prevEnd = U.addDays(prevStart, Math.min(dayOfMonth, Number(U.endOfMonth(prevStart).slice(8, 10))) - 1);
     const mtd = concluded(monthStart, t);
     const prev = concluded(prevStart, prevEnd);
-    const mtdTotal = U.sum(mtd, (a) => a.total);
-    const prevTotal = U.sum(prev, (a) => a.total);
+    const mtdTotal = U.sum(mtd, (a) => a.total) + soldTotal(monthStart, t);
+    const prevTotal = U.sum(prev, (a) => a.total) + soldTotal(prevStart, prevEnd);
     const ticket = mtd.length ? mtdTotal / mtd.length : 0;
     const prevTicket = prev.length ? prevTotal / prev.length : 0;
     const prevMonthName = U.MONTHS[U.parseDate(prevStart).getMonth()];
@@ -64,8 +67,11 @@ window.App.ready(function () {
         <span class="kpi-value">${U.money(ticket)}</span><span class="kpi-sub">${delta(ticket, prevTicket, `vs. ${prevMonthName}`)}</span></div>`;
     } else {
       const b = db.barber(P.scopeBarberId) || { commission: 0 };
+      const svc = U.sum(mtd, (a) => a.total);
+      const mine = sold(monthStart, t);
+      const value = (svc * (b.commission || 0)) / 100 + U.sum(mine, App.comanda.commissionOf);
       fourth = html`<div class="kpi"><span class="kpi-label"><i class="bi bi-wallet2" aria-hidden="true"></i>Minha comissão no mês</span>
-        <span class="kpi-value">${U.money((mtdTotal * (b.commission || 0)) / 100)}</span><span class="kpi-sub"><span>${b.commission || 0}% sobre ${U.money(mtdTotal)}</span></span></div>`;
+        <span class="kpi-value">${U.money(value)}</span><span class="kpi-sub"><span>${b.commission || 0}% sobre ${U.money(svc)}${mine.length ? ` + ${App.comanda.commissionRate()}% de produtos` : ''}</span></span></div>`;
     }
 
     $('#kpis').innerHTML = html`
@@ -128,6 +134,7 @@ window.App.ready(function () {
     const t = U.today();
     const from = U.addDays(t, -29);
     const byDay = U.groupBy(concluded(from, t), (a) => a.date);
+    const salesByDay = U.groupBy(sold(from, t), (x) => x.date);
     const data = [];
     for (let i = 0; i < 30; i++) {
       const d = U.addDays(from, i);
@@ -136,7 +143,7 @@ window.App.ready(function () {
         date: d,
         label: U.fmtDateMedium(d),
         short: U.fmtDateShort(d),
-        value: U.sum(list, (a) => a.total),
+        value: U.sum(list, (a) => a.total) + U.sum(salesByDay[d] || [], (x) => x.total),
         sub: d === t ? `${list.length} atendimentos · dia em andamento` : `${list.length} atendimentos`,
         muted: d === t,
       });

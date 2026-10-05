@@ -69,6 +69,8 @@
   }
 
   async function logout() {
+    // No app, o celular da equipe para de receber avisos desta conta
+    if (App.native && App.native.beforeLogout) await App.native.beforeLogout();
     session.clear();
     if (CLOUD) await App.cloud.logout();
   }

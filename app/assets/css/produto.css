@@ -37,7 +37,7 @@
   position: sticky;
   top: 0;
   z-index: 30;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--glass);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
 }
@@ -213,7 +213,7 @@
 
 /* Endereço da barbearia: prefixo do site + nome */
 .slug-field { display: flex; align-items: stretch; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface-2); overflow: hidden; }
-.slug-field:hover { border-color: #b9bfca; }
+.slug-field:hover { border-color: var(--line-hover); }
 .field.invalid .slug-field { border-color: var(--danger); }
 .slug-field:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
 .slug-prefix { display: block; flex: 0 1 auto; min-width: 3ch; align-self: center; padding: 0 0.15rem 0 0.8rem; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -244,3 +244,12 @@
 .p-body .plan-name { font-weight: 800; text-transform: none; letter-spacing: -0.02em; font-size: 1.35rem; }
 .p-body .plan-price strong { font-weight: 800; letter-spacing: -0.02em; }
 .p-body .plan-card.is-featured { border-color: rgba(229, 72, 77, 0.45); background: linear-gradient(180deg, rgba(229, 72, 77, 0.1), var(--surface) 60%); }
+
+/* Modo escuro: o vermelho da marca continua, os tons claros viram escuros */
+@media (prefers-color-scheme: dark) {
+  .p-body {
+    --primary-strong: #f6787c;
+    --primary-soft: color-mix(in srgb, var(--primary) 14%, var(--surface));
+    --primary-line: color-mix(in srgb, var(--primary) 40%, var(--surface));
+  }
+}

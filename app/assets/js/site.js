@@ -57,16 +57,16 @@ window.App.ready(function () {
 
   /** Linha do quadro de preços (página inicial e página de serviços) */
   const boardItem = (s) => html`
-    <a class="board-item" href="agendar.html?servico=${s.id}" aria-label="Agendar ${s.name}, ${U.money(s.price)}">
-      <div class="board-row">
+    <a class="board-item" href="agendar.html?servico=${s.id}" aria-label="Agendar ${s.name}, ${U.money(s.price)}, ${U.fmtDuration(s.duration)}">
+      <span class="board-info">
         <span class="board-name">${s.name}</span>
-        <span class="board-leader" aria-hidden="true"></span>
+        ${s.description ? html`<span class="board-desc">${s.description}</span>` : ''}
+        <span class="board-time">${U.fmtDuration(s.duration)}</span>
+      </span>
+      <span class="board-end">
         <span class="board-price">${U.money(s.price)}</span>
-      </div>
-      <div class="board-meta">
-        <span class="board-desc">${s.description}</span>
-        <span class="board-book"><span class="subtle"><i class="bi bi-clock"></i> ${U.fmtDuration(s.duration)}</span><span class="board-cta">Agendar <i class="bi bi-chevron-right"></i></span></span>
-      </div>
+        <span class="board-cta">Agendar</span>
+      </span>
     </a>`;
 
   function openChip() {

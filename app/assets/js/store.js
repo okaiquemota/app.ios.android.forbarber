@@ -17,10 +17,10 @@
   const VERSION = 1;
   const COLLECTIONS = ['services', 'barbers', 'users', 'appointments', 'blocks', 'messages', 'reviews'];
   // Coleções que chegaram depois (clube de assinatura e lista de espera): completadas se faltarem
-  const EXTRA = ['plans', 'subscriptions', 'subPayments', 'waitlist'];
+  const EXTRA = ['plans', 'subscriptions', 'subPayments', 'waitlist', 'products', 'sales'];
   const PREFIX = {
     services: 's', barbers: 'b', users: 'c', appointments: 'a', blocks: 'bl', messages: 'm', reviews: 'r',
-    plans: 'pl', subscriptions: 'sb', subPayments: 'sp', waitlist: 'w',
+    plans: 'pl', subscriptions: 'sb', subPayments: 'sp', waitlist: 'w', products: 'p', sales: 'v',
   };
   const ensureExtra = (d) => {
     EXTRA.forEach((c) => { if (!Array.isArray(d[c])) d[c] = []; });
@@ -60,7 +60,13 @@
     data.settings = { ...App.seed.DEFAULT_SETTINGS, ...data.settings };
     ensureExtra(data);
     data.meta = data.meta || {};
-    if (maintainDemo()) persist();
+    // Demonstração salva antes da comanda: ganha produtos e vendas de exemplo
+    let seeded = false;
+    if (data.settings.demoMode && !data.meta.produtos) {
+      App.seed.addProducts(data);
+      seeded = true;
+    }
+    if (maintainDemo() || seeded) persist();
   }
 
   function persist() {
@@ -148,6 +154,10 @@
       x.createdAt = shift(x.createdAt);
     });
     data.waitlist.forEach((x) => {
+      x.date = U.addDays(x.date, days);
+      x.createdAt = shift(x.createdAt);
+    });
+    data.sales.forEach((x) => {
       x.date = U.addDays(x.date, days);
       x.createdAt = shift(x.createdAt);
     });
@@ -339,6 +349,7 @@
     data.subscriptions = [];
     data.subPayments = [];
     data.waitlist = [];
+    data.sales = [];
     data.users = data.users.filter((u) => u.role !== 'cliente');
     data.settings.demoMode = false;
     return commit();
@@ -364,7 +375,7 @@
     return {
       version: VERSION, meta: {}, settings: { ...App.seed.DEFAULT_SETTINGS, demoMode: false },
       services: [], barbers: [], users: [], appointments: [], blocks: [], messages: [], reviews: [],
-      plans: [], subscriptions: [], subPayments: [], waitlist: [],
+      plans: [], subscriptions: [], subPayments: [], waitlist: [], products: [], sales: [],
     };
   }
   if (CLOUD) {

@@ -55,7 +55,9 @@ window.App.ready(function () {
     for (let m = top; m < bottom; m += interval) times.push(html`<div>${m % 60 === 0 ? U.fromMin(m) : ''}</div>`);
 
     const grid = $('#agenda');
-    grid.style.gridTemplateColumns = `56px repeat(${cols.length}, minmax(170px, 1fr))`;
+    // No celular as colunas ficam mais estreitas para caber mais gente na tela
+    const colMin = window.matchMedia('(max-width: 639px)').matches ? 132 : 170;
+    grid.style.gridTemplateColumns = `56px repeat(${cols.length}, minmax(${colMin}px, 1fr))`;
     grid.style.setProperty('--slot-h', `${SLOT_H}px`);
     grid.innerHTML = html`
       <div class="agenda-corner" style="grid-row:1;grid-column:1"></div>

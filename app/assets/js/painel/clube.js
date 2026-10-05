@@ -61,7 +61,7 @@ window.App.ready(function () {
             <span class="error-text"></span></fieldset>
           <div class="field"><label class="label" for="pl-disc">Desconto nos outros serviços (%)</label><input class="input" id="pl-disc" name="discount" type="number" min="0" max="100" value="${p ? p.discountOthers || 0 : 0}"></div>
           <div class="field"><span class="label">No site</span><label class="switch"><input type="checkbox" id="pl-active" ${!p || p.active !== false ? raw('checked') : ''}><span class="track"></span>Plano à venda</label></div>
-          <div class="field full"><label class="label" for="pl-desc">Descrição <span class="opt">(opcional)</span></label><input class="input" id="pl-desc" name="description" maxlength="140" value="${p ? p.description || '' : ''}"></div>
+          <div class="field full"><label class="label" for="pl-desc">Descrição <span class="label-hint">(opcional)</span></label><input class="input" id="pl-desc" name="description" maxlength="140" value="${p ? p.description || '' : ''}"></div>
         </form>`,
       footer: html`<button type="button" class="btn btn-ghost" data-close>Cancelar</button><button type="button" class="btn btn-primary" data-save><i class="bi bi-check2"></i>Salvar plano</button>`,
     });

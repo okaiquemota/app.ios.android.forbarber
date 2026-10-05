@@ -68,7 +68,7 @@ window.App.ready(function () {
           <div class="field"><label class="label" for="w-period">Período</label><select class="select" id="w-period" name="period">${Object.entries(W.PERIODS).map(([k, v]) => html`<option value="${k}">${v.label}</option>`)}</select></div>
           <div class="field"><label class="label" for="w-svc">Serviço</label><select class="select" id="w-svc" name="service">${services.map((x) => html`<option value="${x.id}">${x.name}</option>`)}</select></div>
           <div class="field"><label class="label" for="w-barber">Profissional</label><select class="select" id="w-barber" name="barber"><option value="">Qualquer um</option>${db.barbers({ active: true }).map((b) => html`<option value="${b.id}">${b.name}</option>`)}</select></div>
-          <div class="field full"><label class="label" for="w-notes">Observação <span class="opt">(opcional)</span></label><input class="input" id="w-notes" name="notes" maxlength="200"></div>
+          <div class="field full"><label class="label" for="w-notes">Observação <span class="label-hint">(opcional)</span></label><input class="input" id="w-notes" name="notes" maxlength="200"></div>
         </form>`,
       footer: html`<button type="button" class="btn btn-ghost" data-close>Cancelar</button><button type="button" class="btn btn-primary" data-save><i class="bi bi-check2"></i>Adicionar</button>`,
     });
