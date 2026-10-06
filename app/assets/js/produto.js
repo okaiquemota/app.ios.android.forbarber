@@ -48,7 +48,7 @@
         <h1>Quase lá</h1>
         <p class="muted">As contas abrem assim que o ForBarber estiver ligado ao banco de dados. Enquanto isso, a demonstração mostra tudo funcionando.</p>
       </div>
-      <a class="btn btn-primary btn-lg btn-block" href="app/"><i class="bi bi-play-circle"></i>Abrir a demonstração</a>
+      <a class="btn btn-primary btn-lg btn-block" href="${CFG.appKind === 'pro' ? 'app/login.html?b=demo&next=painel/index.html#demo' : 'app/'}"><i class="bi bi-play-circle"></i>Abrir a demonstração</a>
       <a class="btn btn-whatsapp btn-block" href="${sales('Olá! Quero colocar minha barbearia no ForBarber.')}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i>Falar com a gente</a>`;
   }
 

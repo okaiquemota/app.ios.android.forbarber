@@ -1311,3 +1311,4 @@ a.member .member-role {
   .remind-card { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
   .remind-card .btn { grid-column: 2; justify-self: start; }
 }
+body.no-footer .site-footer { display: none; }

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ForBarber</title>
+  <meta name="theme-color" content="#0b1120">
+  <link rel="preload" href="app/assets/vendor/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="app/assets/vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="app/assets/css/base.css">
+  <link rel="stylesheet" href="app/assets/css/produto.css">
+  <link rel="stylesheet" href="inicio.css">
+</head>
+<body class="p-body" data-page="inicio">
+  <header class="p-header">
+    <div class="container p-header-inner">
+      <span class="p-brand"><span class="p-brand-mark" aria-hidden="true"></span><span class="p-brand-name"><span>For</span>Barber</span></span>
+    </div>
+  </header>
+
+  <main id="conteudo" class="container inicio">
+    <section class="stack-sm" aria-labelledby="t-shops" id="shops-sec" hidden>
+      <h1 class="p-title in-title" id="t-shops">Suas barbearias</h1>
+      <div class="p-shops" id="shops"></div>
+    </section>
+
+    <section class="stack" aria-labelledby="t-find">
+      <div class="stack-sm">
+        <h2 class="p-title in-title" id="t-find">Agendar numa barbearia</h2>
+        <p class="muted">Cole o link que a barbearia te mandou ou digite o nome dela no link.</p>
+      </div>
+      <form id="find-form" class="stack" novalidate>
+        <div class="field">
+          <label class="label" for="shop-link">Link ou nome da barbearia</label>
+          <div class="input-icon"><i class="bi bi-link-45deg" aria-hidden="true"></i><input class="input" id="shop-link" name="link" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="forbarber.com.br/barbeariadoze" enterkeyhint="go"></div>
+        </div>
+        <button class="btn btn-primary btn-lg btn-block" type="submit"><i class="bi bi-arrow-right-circle"></i>Abrir barbearia</button>
+      </form>
+    </section>
+
+    <section class="stack-sm" aria-labelledby="t-demo">
+      <h2 class="p-title in-title" id="t-demo">Só conhecendo?</h2>
+      <p class="muted">Uma barbearia de exemplo para ver como é agendar e acompanhar seus horários.</p>
+      <a class="btn btn-ghost btn-block" href="app/index.html?b=demo"><i class="bi bi-play-circle"></i>Abrir a demonstração</a>
+    </section>
+
+    <section class="stack-sm in-account" id="account" hidden></section>
+
+    <p class="in-version">É dono ou barbeiro? A agenda da equipe fica no app <strong>ForBarber Pro</strong>.<br>ForBarber {{VERSION}} · um produto MovCode</p>
+  </main>
+
+  <script src="app/assets/js/config.js"></script>
+  <script src="app/assets/js/utils.js"></script>
+  <script src="app/assets/js/ui.js"></script>
+  <script src="app/assets/js/cloud.js"></script>
+  <script src="inicio.js"></script>
+</body>
+</html>

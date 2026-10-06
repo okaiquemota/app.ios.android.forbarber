@@ -28,6 +28,11 @@
     salesWhatsapp: '5516982157266',
     salesUrl: 'https://movcode.com.br/sistema-para-barbearia',
 
+    // Qual app está rodando: 'web' (navegador), 'cliente' (app ForBarber) ou
+    // 'pro' (app ForBarber Pro, da equipe). Os apps trocam sozinhos ao montar
+    // (mobile/shared/build-www.mjs); no site fica 'web'.
+    appKind: 'web',
+
     // Avisos no celular da equipe (novo agendamento, remarcação, cancelamento).
     // Ligue só depois de configurar o Firebase e a chave da Apple (ver README):
     // sem o google-services.json, o app Android fecha ao tentar registrar.

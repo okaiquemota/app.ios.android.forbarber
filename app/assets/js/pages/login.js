@@ -12,6 +12,14 @@ window.App.ready(function () {
   const form = $('#login-form');
 
   if (next) $('#signup-link').href = `cadastro.html?next=${encodeURIComponent(next)}`;
+  // Cada app mostra só o que é dele: no Pro não se cria conta de cliente; no app do cliente, sem acessos da equipe
+  const kind = (window.FORBARBER || {}).appKind;
+  if (kind === 'pro') {
+    $('#signup-link').closest('.auth-alt').remove();
+    document.querySelectorAll('[data-demo="cliente@demo.com"]').forEach((el) => el.remove());
+  } else if (kind === 'cliente') {
+    document.querySelectorAll('[data-demo="admin@demo.com"], [data-demo="barbeiro@demo.com"]').forEach((el) => el.remove());
+  }
   if (U.qs('email')) form.elements.email.value = U.qs('email');
 
   if (U.qs('confirmado')) {

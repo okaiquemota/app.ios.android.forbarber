@@ -21,7 +21,7 @@ supabase/migrations/  banco: tabelas, segurança por barbearia, funções
 supabase/functions/   notify-booking: manda o aviso de agendamento para o celular da equipe
 supabase/tests/       127 testes de segurança e regras (bash supabase/tests/run.sh)
 vercel.json           endereço por barbearia (/nome/… → app/…)
-mobile/               app ForBarber para iOS e Android (Capacitor) — ver mobile/README.md
+mobile/               apps ForBarber (clientes) e ForBarber Pro (equipe) para iOS e Android — ver mobile/README.md
 ```
 
 Sem chaves no `config.js`, tudo roda como **demonstração local** (dados de exemplo no navegador). Também é o que acontece em `/demo/` e `/app/`.
@@ -49,14 +49,15 @@ No servidor, preço com clube e valor do sinal são calculados por `book_appoint
 
 Sem esta configuração, tudo funciona e os avisos aparecem com o painel aberto. Para chegarem também com o app fechado:
 
-1. **Firebase (Android):** crie um projeto em console.firebase.google.com, adicione um app Android com o pacote `br.com.movcode.forbarber` e baixe o `google-services.json` para `mobile/android/app/`. Em *Configurações do projeto › Contas de serviço*, gere uma **chave privada** (arquivo JSON) para o servidor.
-2. **Apple (iPhone):** em developer.apple.com › *Keys*, crie uma chave com **Apple Push Notifications service (APNs)** e baixe o `.p8` (anote o *Key ID* e o *Team ID*). No Xcode, em *Signing & Capabilities*, adicione **Push Notifications**.
+1. **Firebase (Android):** crie um projeto em console.firebase.google.com, adicione um app Android com o pacote `br.com.movcode.forbarber.pro` (o push é só do app da equipe) e baixe o `google-services.json` para `mobile/pro/android/app/`. Em *Configurações do projeto › Contas de serviço*, gere uma **chave privada** (arquivo JSON) para o servidor.
+2. **Apple (iPhone):** em developer.apple.com › *Keys*, crie uma chave com **Apple Push Notifications service (APNs)** e baixe o `.p8` (anote o *Key ID* e o *Team ID*). No Xcode, no projeto `mobile/pro/ios`, em *Signing & Capabilities*, adicione **Push Notifications**.
 3. **Função de borda:** com a CLI do Supabase,
    ```bash
    supabase functions deploy notify-booking --no-verify-jwt
    supabase secrets set FORBARBER_PUSH_SECRET="um-segredo-longo-qualquer" \
      FCM_SERVICE_ACCOUNT="$(cat chave-do-firebase.json)" \
-     APNS_KEY="$(cat AuthKey_XXXXXXXXXX.p8)" APNS_KEY_ID="XXXXXXXXXX" APNS_TEAM_ID="YYYYYYYYYY"
+     APNS_KEY="$(cat AuthKey_XXXXXXXXXX.p8)" APNS_KEY_ID="XXXXXXXXXX" APNS_TEAM_ID="YYYYYYYYYY" \
+     APNS_BUNDLE_ID="br.com.movcode.forbarber.pro"
    ```
    Celular instalado direto pelo Xcode usa o ambiente de teste da Apple: a função tenta os dois sozinha, ou force com `APNS_SANDBOX=true`.
 4. **Banco:** em *Database › Extensions*, ligue o **pg_net**. No SQL Editor, guarde no Vault o endereço das funções e o mesmo segredo:
@@ -64,7 +65,7 @@ Sem esta configuração, tudo funciona e os avisos aparecem com o painel aberto.
    select vault.create_secret('https://SEU-PROJETO.supabase.co/functions/v1', 'forbarber_functions_url');
    select vault.create_secret('um-segredo-longo-qualquer', 'forbarber_push_secret');
    ```
-5. Em `app/assets/js/config.js`, mude `push` para `true` e gere o app de novo (`mobile/README.md`).
+5. Em `app/assets/js/config.js`, mude `push` para `true` e gere o ForBarber Pro de novo (`mobile/README.md`).
 
 Como funciona: um gatilho no banco (`appointments_push`, no fim de cada transação) decide o aviso e chama a função `notify-booking`, que manda pelo Firebase (Android) e pela Apple (iPhone) para o barbeiro do horário, o dono e quem pediu a barbearia toda, nunca para quem fez a mudança. Celular que desinstalou o app sai da lista sozinho. Se algo falhar no envio, o agendamento segue normal. Testes da função: `deno test supabase/functions/notify-booking/`.
 

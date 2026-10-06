@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ForBarber Pro</title>
+  <meta name="theme-color" content="#0b1120">
+  <link rel="preload" href="app/assets/vendor/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="app/assets/vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="app/assets/css/base.css">
+  <link rel="stylesheet" href="app/assets/css/produto.css">
+  <link rel="stylesheet" href="inicio.css">
+</head>
+<body class="p-body" data-page="inicio">
+  <header class="p-header">
+    <div class="container p-header-inner">
+      <span class="p-brand"><span class="p-brand-mark" aria-hidden="true"></span><span class="p-brand-name"><span>For</span>Barber</span><span class="p-pro">Pro</span></span>
+    </div>
+  </header>
+
+  <main id="conteudo" class="container inicio">
+    <section class="stack-sm" aria-labelledby="t-shops" id="shops-sec" hidden>
+      <h1 class="p-title in-title" id="t-shops">Suas barbearias</h1>
+      <div class="p-shops" id="shops"></div>
+    </section>
+
+    <section class="stack" aria-labelledby="t-enter">
+      <div class="stack-sm">
+        <h2 class="p-title in-title" id="t-enter">A barbearia na palma da mão</h2>
+        <p class="muted">Agenda, clientes, comanda e caixa. Dono e barbeiros entram com o e-mail cadastrado, e cada um vê o que é seu.</p>
+      </div>
+      <a class="btn btn-primary btn-lg btn-block" href="entrar.html"><i class="bi bi-box-arrow-in-right"></i>Entrar</a>
+    </section>
+
+    <section class="stack-sm" aria-labelledby="t-demo">
+      <h2 class="p-title in-title" id="t-demo">Só conhecendo?</h2>
+      <p class="muted">Uma barbearia de exemplo com agenda, clientes, produtos e financeiro para testar à vontade.</p>
+      <a class="btn btn-ghost btn-block" href="app/login.html?b=demo&amp;next=painel/index.html#demo"><i class="bi bi-play-circle"></i>Abrir a demonstração</a>
+    </section>
+
+    <section class="stack-sm in-account" id="account" hidden></section>
+
+    <p class="in-version">Para agendar como cliente, use o app <strong>ForBarber</strong>.<br>ForBarber Pro {{VERSION}} · um produto MovCode</p>
+  </main>
+
+  <script src="app/assets/js/config.js"></script>
+  <script src="app/assets/js/utils.js"></script>
+  <script src="app/assets/js/ui.js"></script>
+  <script src="app/assets/js/cloud.js"></script>
+  <script src="inicio.js"></script>
+</body>
+</html>

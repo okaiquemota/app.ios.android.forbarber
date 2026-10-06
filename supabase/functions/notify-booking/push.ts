@@ -128,7 +128,7 @@ export function loadConfig(env: (name: string) => string | undefined): Config {
       key,
       keyId: env('APNS_KEY_ID')!,
       teamId: env('APNS_TEAM_ID')!,
-      bundleId: env('APNS_BUNDLE_ID') || 'br.com.movcode.forbarber',
+      bundleId: env('APNS_BUNDLE_ID') || 'br.com.movcode.forbarber.pro', // o push é do app da equipe
       sandbox: env('APNS_SANDBOX') === 'true',
     };
   }

@@ -1,0 +1,21 @@
+/* Tela inicial do app ForBarber */
+.inicio { display: flex; flex-direction: column; gap: var(--sp-7); padding-block: var(--sp-6) var(--sp-8); max-width: 560px; }
+.in-title { font-size: 1.45rem; }
+.p-shop .p-shop-logo { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; background: var(--surface-3); flex: 0 0 auto; }
+.p-shop .p-shop-logo.is-empty { display: grid; place-items: center; color: var(--primary); font-weight: 800; }
+.p-shop-remove { margin-left: auto; color: var(--text-3); padding: 0.4rem; }
+.in-version { color: var(--text-3); font-size: var(--fs-xs); text-align: center; }
+html.is-native .p-header { position: sticky; }
+.p-pro {
+  margin-left: 0.45rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  background: var(--primary);
+  color: var(--primary-ink);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.in-version strong { color: var(--text-2); }

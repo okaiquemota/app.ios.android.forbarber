@@ -61,8 +61,8 @@
   let syncing = Promise.resolve();
   function syncReminders() {
     syncing = syncing.then(async () => {
-      // Página sem o módulo de lembretes (painel): não mexe nos avisos agendados
-      if (!App.reminders) return;
+      // Página sem o módulo de lembretes (painel) ou app da equipe: não mexe nos avisos
+      if (!App.reminders || CFG.appKind === 'pro') return;
       const user = App.auth.current();
       const client = user && !App.auth.isStaff(user) ? user : null;
       const s = App.db.settings();
@@ -130,7 +130,8 @@
      O celular fica registrado na conta: o servidor manda o aviso quando entra,
      muda ou cai um horário (supabase/functions/notify-booking). */
   const PUSH_KEY = 'forbarber:pushToken';
-  const Push = CFG.push ? cap.registerPlugin('PushNotifications') : null;
+  // Push só no ForBarber Pro (o app do cliente nem tem o plugin)
+  const Push = CFG.push && CFG.appKind === 'pro' ? cap.registerPlugin('PushNotifications') : null;
   const pushOn = () => !!(Push && App.auth.isCloud());
   let pushListening = false;
   function pushListeners() {

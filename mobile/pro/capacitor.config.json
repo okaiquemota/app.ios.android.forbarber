@@ -1,0 +1,34 @@
+{
+  "appId": "br.com.movcode.forbarber.pro",
+  "appName": "ForBarber Pro",
+  "webDir": "www",
+  "backgroundColor": "#0b1120",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#0b1120"
+  },
+  "android": {
+    "backgroundColor": "#0b1120"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 600,
+      "launchAutoHide": true,
+      "backgroundColor": "#0b1120",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DEFAULT",
+      "backgroundColor": "#0b1120",
+      "overlaysWebView": true
+    },
+    "SystemBars": {
+      "insetsHandling": "css"
+    },
+    "PushNotifications": {
+      "presentationOptions": [
+        "sound"
+      ]
+    }
+  }
+}

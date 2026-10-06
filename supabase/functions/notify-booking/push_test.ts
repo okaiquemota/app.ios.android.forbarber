@@ -61,7 +61,7 @@ Deno.test('Firebase: conta de serviço assina RS256 válido', async () => {
 
 Deno.test('Apple: chave .p8 assina ES256 válido', async () => {
   const pair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']) as CryptoKeyPair;
-  const jwt = await apnsJwt({ key: await pem(pair.privateKey), keyId: 'ABC123DEFG', teamId: 'TEAM123456', bundleId: 'br.com.movcode.forbarber', sandbox: false }, NOW.getTime());
+  const jwt = await apnsJwt({ key: await pem(pair.privateKey), keyId: 'ABC123DEFG', teamId: 'TEAM123456', bundleId: 'br.com.movcode.forbarber.pro', sandbox: false }, NOW.getTime());
   const [h, c, s] = jwt.split('.');
   eq(JSON.parse(new TextDecoder().decode(fromB64url(h))), { alg: 'ES256', kid: 'ABC123DEFG' }, 'cabeçalho');
   eq(fromB64url(s).length, 64, 'assinatura no formato r||s');
@@ -76,7 +76,7 @@ Deno.test('entrega: separa enviados, celulares de teste e aparelhos que sumiram'
   const ec = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign']) as CryptoKeyPair;
   const cfg: Config = {
     fcm: { projectId: 'p', clientEmail: 'e@x', privateKey: await pem(rsa.privateKey), tokenUri: 'https://oauth2.googleapis.com/token' },
-    apns: { key: await pem(ec.privateKey), keyId: 'K', teamId: 'T', bundleId: 'br.com.movcode.forbarber', sandbox: false },
+    apns: { key: await pem(ec.privateKey), keyId: 'K', teamId: 'T', bundleId: 'br.com.movcode.forbarber.pro', sandbox: false },
   };
   const calls: string[] = [];
   const fake = (async (url: string, init: RequestInit) => {
@@ -90,7 +90,7 @@ Deno.test('entrega: separa enviados, celulares de teste e aparelhos que sumiram'
         : new Response(JSON.stringify({ error: { status: 'NOT_FOUND', details: [{ errorCode: 'UNREGISTERED' }] } }), { status: 404 });
     }
     const headers = init.headers as Record<string, string>;
-    eq(headers['apns-topic'], 'br.com.movcode.forbarber', 'tópico da Apple');
+    eq(headers['apns-topic'], 'br.com.movcode.forbarber.pro', 'tópico da Apple (app Pro)');
     if (url.endsWith('/ios-xcode')) {
       return url.includes('sandbox') ? new Response(null, { status: 200 }) : new Response(JSON.stringify({ reason: 'BadDeviceToken' }), { status: 400 });
     }

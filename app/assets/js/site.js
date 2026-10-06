@@ -156,8 +156,11 @@ window.App.ready(function () {
   function renderTabbar() {
     const page = document.body.dataset.page;
     let bar = document.getElementById('tabbar');
-    // No agendamento a barra de baixo é o resumo com "Continuar"
-    if (page === 'agendar') {
+    // No agendamento a barra de baixo é o resumo com "Continuar"; no app da equipe
+    // (ForBarber Pro) o login não leva a navegação de cliente
+    const proLogin = (window.FORBARBER || {}).appKind === 'pro' && page === 'login';
+    document.body.classList.toggle('no-footer', proLogin);
+    if (page === 'agendar' || proLogin) {
       if (bar) bar.remove();
       document.body.classList.remove('has-tabbar');
       return;
@@ -251,7 +254,7 @@ window.App.ready(function () {
         <span>© <span data-bind="year"></span> <span data-bind="name"></span>. Todos os direitos reservados.</span>
         <span class="footer-actions">
           <button type="button" class="link-btn" data-install ${App.pwa && App.pwa.available() ? '' : raw('hidden')}><i class="bi bi-phone"></i> Instalar app</button>
-          <a href="login.html"><i class="bi bi-lock"></i> Área da equipe</a>
+          ${(window.FORBARBER || {}).appKind === 'cliente' ? '' : html`<a href="login.html"><i class="bi bi-lock"></i> Área da equipe</a>`}
         </span>
       </div>`;
   }

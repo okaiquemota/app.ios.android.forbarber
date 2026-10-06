@@ -1,5 +1,6 @@
 name: App iOS e Android
 
+# Dois apps do mesmo sistema: ForBarber (clientes) e ForBarber Pro (equipe)
 on:
   push:
     paths: ['app/**', 'entrar.html', 'mobile/**', '.github/workflows/mobile.yml']
@@ -7,58 +8,66 @@ on:
 
 jobs:
   android:
-    name: Android (APK de teste)
+    name: Android · ${{ matrix.app }} (APK de teste)
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [cliente, pro]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: mobile/package-lock.json
+          cache-dependency-path: mobile/${{ matrix.app }}/package-lock.json
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
       - name: Montar o app
-        working-directory: mobile
+        working-directory: mobile/${{ matrix.app }}
         run: |
           npm ci
           npm run build
           npx cap sync android
       - name: Compilar
-        working-directory: mobile/android
+        working-directory: mobile/${{ matrix.app }}/android
         run: ./gradlew assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: forbarber-android-debug
-          path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          name: forbarber-${{ matrix.app }}-android-debug
+          path: mobile/${{ matrix.app }}/android/app/build/outputs/apk/debug/app-debug.apk
 
   ios:
-    name: iOS (simulador, sem assinatura)
+    name: iOS · ${{ matrix.app }} (simulador, sem assinatura)
     runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [cliente, pro]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: mobile/package-lock.json
+          cache-dependency-path: mobile/${{ matrix.app }}/package-lock.json
       - name: Montar o app
-        working-directory: mobile
+        working-directory: mobile/${{ matrix.app }}
         run: |
           npm ci
           npm run build
           npx cap sync ios
       - name: Compilar
-        working-directory: mobile/ios/App
+        working-directory: mobile/${{ matrix.app }}/ios/App
         run: |
           xcodebuild -project App.xcodeproj -scheme App -configuration Debug \
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
       - name: Empacotar
-        run: cd mobile/ios/App/build/Build/Products/Debug-iphonesimulator && zip -qry "$GITHUB_WORKSPACE/forbarber-ios-simulador.zip" App.app
+        run: cd mobile/${{ matrix.app }}/ios/App/build/Build/Products/Debug-iphonesimulator && zip -qry "$GITHUB_WORKSPACE/forbarber-${{ matrix.app }}-ios-simulador.zip" App.app
       - uses: actions/upload-artifact@v4
         with:
-          name: forbarber-ios-simulador
-          path: forbarber-ios-simulador.zip
+          name: forbarber-${{ matrix.app }}-ios-simulador
+          path: forbarber-${{ matrix.app }}-ios-simulador.zip

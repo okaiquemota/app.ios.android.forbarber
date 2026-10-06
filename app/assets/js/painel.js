@@ -48,6 +48,24 @@ window.App.ready(function () {
     App.painel = null;
     return;
   }
+  // No app do cliente (ForBarber) o painel não abre: a equipe usa o ForBarber Pro
+  if ((window.FORBARBER || {}).appKind === 'cliente') {
+    document.body.className = 'p-body';
+    document.body.innerHTML = html`
+      <main class="container" style="min-height:100vh;display:grid;place-items:center;padding-block:var(--sp-7)">
+        <div class="card card-pad stack" style="max-width:420px">
+          <div class="stack-sm">
+            <h1 style="font-size:var(--fs-xl)">O painel fica no ForBarber Pro</h1>
+            <p class="muted">Você entrou com um acesso da equipe (<strong>${user.email}</strong>). Agenda, clientes e caixa ficam no app <strong>ForBarber Pro</strong>; este app é para quem agenda.</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-block" data-team-out><i class="bi bi-box-arrow-right"></i>Sair e voltar para a barbearia</button>
+        </div>
+      </main>`.toString();
+    UI.applyBranding();
+    document.querySelector('[data-team-out]').addEventListener('click', () => auth.logout().then(() => (location.href = '../index.html')));
+    App.painel = null;
+    return;
+  }
   if (current && current.admin && user.role !== 'admin') {
     UI.flash('Essa área é exclusiva do administrador.', 'info');
     location.replace('index.html');
@@ -914,7 +932,8 @@ window.App.ready(function () {
     }
     if (e.target.closest('.menu-btn')) return setMenu(!$('#side').classList.contains('open'));
     if (e.target.closest('[data-logout]')) {
-      auth.logout().then(() => (location.href = '../login.html'));
+      // No app Pro, sair volta para a tela inicial do app; no site, para o login
+      auth.logout().then(() => (location.href = App.native ? App.native.home : '../login.html'));
     }
   });
   document.addEventListener('keydown', (e) => {
